@@ -50,11 +50,11 @@ if FLAIR_AVAILABLE:
         # Carregar modelo multilíngue do Flair (inclui português)
         flair_tagger = SequenceTagger.load('ner-multi')
         logger.info("✅ Flair NER model loaded successfully (multilingual)")
-        logger.info("Flair NER model loaded successfully (multilingual)")
     except Exception as e:
         logger.warning(f"Failed to load Flair model: {e}")
         flair_tagger = None
 
+try:
     provider = NlpEngineProvider(nlp_configuration=configuration)
     nlp_engine = provider.create_engine()
     
