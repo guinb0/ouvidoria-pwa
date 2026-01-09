@@ -5,6 +5,17 @@ Aumenta Recall para CPF, RG, CEP e telefones brasileiros
 from typing import List, Optional
 from presidio_analyzer import Pattern, PatternRecognizer
 
+try:
+    from email_validator import validate_email, EmailNotValidError
+    EMAIL_VALIDATOR_AVAILABLE = True
+except ImportError:
+    EMAIL_VALIDATOR_AVAILABLE = False
+try:
+    from email_validator import validate_email, EmailNotValidError
+    EMAIL_VALIDATOR_AVAILABLE = True
+except ImportError:
+    EMAIL_VALIDATOR_AVAILABLE = False
+
 
 class BrazilCpfRecognizer(PatternRecognizer):
     """
@@ -169,3 +180,86 @@ class BrazilPhoneRecognizer(PatternRecognizer):
             context=context,
             supported_language=supported_language,
         )
+
+
+class BrazilEmailRecognizer(PatternRecognizer):
+    """
+    Reconhece emails com validação real usando email-validator
+    Melhora detecção e reduz falsos positivos
+    """
+    PATTERNS = [
+        Pattern(
+            name="email_pattern",
+            regex=r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+            score=0.9,
+        ),
+    ]
+
+    CONTEXT = ["email", "e-mail", "contato", "@"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "EMAIL_ADDRESS",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+    def validate_result(self, pattern_text: str) -> bool:
+        """Valida se o email é válido usando email-validator"""
+        if not EMAIL_VALIDATOR_AVAILABLE:
+            return True
+        try:
+            validate_email(pattern_text, check_deliverability=False)
+            return True
+        except EmailNotValidError:
+            return False
+        except Exception:
+            return True
+
+
+class BrazilCnpjRecognizer(PatternRecognizer):
+    """
+    Reconhece CNPJ brasileiro nos formatos:
+    - 00.000.000/0000-00
+    - 00000000000000
+    """
+    PATTERNS = [
+        Pattern(
+            name="cnpj_with_formatting",
+            regex=r"\b\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}\b",
+            score=0.95,
+        ),
+        Pattern(
+            name="cnpj_without_formatting",
+            regex=r"(?<!\d)\d{14}(?!\d)",
+            score=0.85,
+        ),
+    ]
+
+    CONTEXT = ["cnpj", "empresa", "razao social", "cadastro nacional"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_CNPJ",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+

@@ -8,3 +8,5 @@ flair>=0.14.0
 torch>=2.5.0
 validate-docbr>=1.10.0  # Validacao de CPF/CNPJ brasileiros
 phonenumbers>=8.13.0    # Validacao de telefones internacionais
+email-validator>=2.1.0  # Validacao de emails
+stanza>=1.7.0          # Transformer NER (Stanford NLP)

@@ -24,8 +24,13 @@ cd presidio-service
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python -m spacy download pt_core_news_sm
+python -m spacy download pt_core_news_lg
 python main.py
+```
+
+**⚠️ Nota sobre o modelo:** O `pt_core_news_lg` (~500MB) tem maior precisão. Se tiver problemas de espaço/memória, use:
+```powershell
+python -m spacy download pt_core_news_sm
 ```
 
 **✅ Aguarde até ver:** `Uvicorn running on http://0.0.0.0:8000`
