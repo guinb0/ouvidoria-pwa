@@ -8,6 +8,14 @@ from presidio_anonymizer.entities import OperatorConfig
 from typing import List, Dict, Any
 import logging
 
+# Importar reconhecedores brasileiros customizados
+from brazilian_recognizers import (
+    BrazilCpfRecognizer,
+    BrazilRgRecognizer,
+    BrazilCepRecognizer,
+    BrazilPhoneRecognizer
+)
+
 # Tentar importar Flair para NER de alta precisão
 try:
     from flair.data import Sentence
@@ -54,14 +62,21 @@ if FLAIR_AVAILABLE:
         logger.warning(f"Failed to load Flair model: {e}")
         flair_tagger = None
 
-try:
-    provider = NlpEngineProvider(nlp_configuration=configuration)
-    nlp_engine = provider.create_engine()
+try:Adicionar reconhecedores brasileiros customizados
+    registry.add_recognizer(BrazilCpfRecognizer())
+    registry.add_recognizer(BrazilRgRecognizer())
+    registry.add_recognizer(BrazilCepRecognizer())
+    registry.add_recognizer(BrazilPhoneRecognizer())
+    logger.info("✅ Reconhecedores brasileiros customizados adicionados (CPF, RG, CEP, Telefone)")
     
-    # Criar registro de reconhecedores
-    registry = RecognizerRegistry()
-    registry.load_predefined_recognizers(nlp_engine=nlp_engine)
+    # Inicializar engines
+    analyzer = AnalyzerEngine(nlp_engine=nlp_engine, registry=registry)
+    anonymizer = AnonymizerEngine()
     
+    if flair_tagger:
+        logger.info("Presidio initialized with Portuguese spaCy + Flair NER + BR recognizers")
+    else:
+        logger.info("Presidio initialized with Portuguese spaCy + BR recognizers
     # Inicializar engines
     analyzer = AnalyzerEngine(nlp_engine=nlp_engine, registry=registry)
     anonymizer = AnonymizerEngine()
@@ -96,7 +111,7 @@ async def processar_texto(request: ProcessamentoRequest):
     Analisa e anonimiza texto usando Microsoft Presidio
     """
     try:
-        # Definir entidades a serem detectadas
+        # Definir entidades a serem detectadas (incluindo brasileiras)
         entities = request.entities or [
             "PERSON",           # Nomes de pessoas
             "EMAIL_ADDRESS",    # E-mails
@@ -107,6 +122,10 @@ async def processar_texto(request: ProcessamentoRequest):
             "IP_ADDRESS",       # Endereços IP
             "NRP",              # CPF (Portugal/Brasil)
             "US_SSN",           # Similar a CPF
+            "BR_CPF",           # CPF brasileiro (custom)
+            "BR_RG",            # RG brasileiro (custom)
+            "BR_CEP",           # CEP brasileiro (custom)
+            "BR_PHONE",         # Telefone brasileiro (custom)
         ]
         
         # Analisar texto com score threshold mais alto
@@ -148,6 +167,10 @@ async def processar_texto(request: ProcessamentoRequest):
             "IP_ADDRESS": OperatorConfig("replace", {"new_value": "XXX.XXX.XXX.XXX"}),
             "NRP": OperatorConfig("replace", {"new_value": "XXX.XXX.XXX-XX"}),
             "US_SSN": OperatorConfig("replace", {"new_value": "XXX.XXX.XXX-XX"}),
+            "BR_CPF": OperatorConfig("replace", {"new_value": "XXX.XXX.XXX-XX"}),
+            "BR_RG": OperatorConfig("replace", {"new_value": "XX.XXX.XXX-X"}),
+            "BR_CEP": OperatorConfig("replace", {"new_value": "XXXXX-XXX"}),
+            "BR_PHONE": OperatorConfig("replace", {"new_value": "(XX) XXXXX-XXXX"}),
             "DEFAULT": OperatorConfig("replace", {"new_value": "[OCULTO]"}),
         }
         
