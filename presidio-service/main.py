@@ -29,9 +29,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 if FLAIR_AVAILABLE:
-    logger.info("✅ Flair disponível para NER de alta precisão")
+    logger.info("Flair disponivel para NER de alta precisao")
 else:
-    logger.warning("⚠️ Flair não instalado, usando apenas spaCy")
+    logger.warning("Flair nao instalado, usando apenas spaCy")
 
 app = FastAPI(title="Ouvidoria Presidio Service", version="1.0.0")
 
@@ -54,10 +54,10 @@ configuration = {
 flair_tagger = None
 if FLAIR_AVAILABLE:
     try:
-        logger.info("📥 Baixando modelo Flair multilíngue (pode demorar na primeira vez)...")
-        # Carregar modelo multilíngue do Flair (inclui português)
+        logger.info("Baixando modelo Flair multilingue (pode demorar na primeira vez)...")
+        # Carregar modelo multilingue do Flair (inclui portugues)
         flair_tagger = SequenceTagger.load('ner-multi')
-        logger.info("✅ Modelo Flair carregado com sucesso (multilíngue)")
+        logger.info("Modelo Flair carregado com sucesso (multilingue)")
     except Exception as e:
         logger.warning(f"Falha ao carregar modelo Flair: {e}")
         flair_tagger = None
@@ -76,16 +76,16 @@ try:
     registry.add_recognizer(BrazilRgRecognizer())
     registry.add_recognizer(BrazilCepRecognizer())
     registry.add_recognizer(BrazilPhoneRecognizer())
-    logger.info("✅ Reconhecedores brasileiros adicionados (CPF, RG, CEP, Telefone)")
+    logger.info("Reconhecedores brasileiros adicionados (CPF, RG, CEP, Telefone)")
     
     # Inicializar engines do Presidio
     analyzer = AnalyzerEngine(nlp_engine=nlp_engine, registry=registry)
     anonymizer = AnonymizerEngine()
     
     if flair_tagger:
-        logger.info("✅ Presidio inicializado com spaCy português + Flair + Reconhecedores BR")
+        logger.info("Presidio inicializado com spaCy portugues + Flair + Reconhecedores BR")
     else:
-        logger.info("✅ Presidio inicializado com spaCy português + Reconhecedores BR")
+        logger.info("Presidio inicializado com spaCy portugues + Reconhecedores BR")
 except Exception as e:
     logger.warning(f"Falha ao carregar modelo português: {e}")
     logger.info("Inicializando com modelo inglês como fallback")
@@ -155,7 +155,7 @@ async def processar_texto(request: ProcessamentoRequest):
                 filtered_results.append(r)
         
         results = filtered_results
-        logger.info(f"🔍 Encontradas {len(results)} entidades no texto")
+        logger.info(f"Encontradas {len(results)} entidades no texto")
         
         # Configurar operadores de anonimização
         operators = {
@@ -201,13 +201,13 @@ async def processar_texto(request: ProcessamentoRequest):
         )
         
     except Exception as e:
-        logger.error(f"❌ Erro ao processar texto: {str(e)}")
+        logger.error(f"Erro ao processar texto: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erro ao processar texto: {str(e)}")
 
 
 @app.get("/api/health")
 async def health_check():
-    """✅ Verifica saúde do serviço"""
+    """Verifica saude do servico"""
     return {
         "status": "OK",
         "servico": "Presidio Service",
@@ -220,7 +220,7 @@ async def health_check():
 
 @app.get("/api/entities")
 async def get_supported_entities():
-    """📋 Retorna lista de entidades suportadas"""
+    """Retorna lista de entidades suportadas"""
     return {
         "entidades": [
             "PERSON",           # Nomes de pessoas
@@ -240,5 +240,5 @@ async def get_supported_entities():
 
 if __name__ == "__main__":
     import uvicorn
-    logger.info("🚀 Iniciando servidor Presidio Service na porta 8000...")
+    logger.info("Iniciando servidor Presidio Service na porta 8000...")
     uvicorn.run(app, host="0.0.0.0", port=8000)
