@@ -1,11 +1,11 @@
 {
   "metricas": {
-    "precisao": 0.8461538461538461,
-    "recall": 0.7857142857142857,
-    "f1_score": 0.8148148148148148,
-    "vp": 11,
-    "fp": 2,
-    "fn": 3
+    "precisao": 0.9375,
+    "recall": 1.0,
+    "f1_score": 0.967741935483871,
+    "vp": 15,
+    "fp": 1,
+    "fn": 0
   },
   "resultados_detalhados": [
     {
@@ -36,10 +36,16 @@
     },
     {
       "caso": 2,
-      "vp": 2,
+      "vp": 3,
       "fp": 1,
-      "fn": 1,
+      "fn": 0,
       "entidades_detectadas": [
+        {
+          "tipo": "EMAIL_ADDRESS",
+          "inicio": 7,
+          "fim": 31,
+          "confianca": 1.0
+        },
         {
           "tipo": "BR_RG",
           "inicio": 36,
@@ -62,10 +68,16 @@
     },
     {
       "caso": 3,
-      "vp": 2,
+      "vp": 3,
       "fp": 0,
-      "fn": 1,
+      "fn": 0,
       "entidades_detectadas": [
+        {
+          "tipo": "EMAIL_ADDRESS",
+          "inicio": 51,
+          "fim": 65,
+          "confianca": 1.0
+        },
         {
           "tipo": "LOCATION",
           "inicio": 10,
@@ -82,14 +94,20 @@
     },
     {
       "caso": 4,
-      "vp": 2,
-      "fp": 1,
-      "fn": 1,
+      "vp": 4,
+      "fp": 0,
+      "fn": 0,
       "entidades_detectadas": [
         {
           "tipo": "BR_CPF",
           "inicio": 14,
           "fim": 25,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "BR_PHONE",
+          "inicio": 51,
+          "fim": 62,
           "confianca": 1.0
         },
         {
@@ -99,10 +117,10 @@
           "confianca": 1.0
         },
         {
-          "tipo": "PERSON",
-          "inicio": 0,
-          "fim": 13,
-          "confianca": 0.85
+          "tipo": "BR_PHONE",
+          "inicio": 14,
+          "fim": 25,
+          "confianca": 0.75
         }
       ]
     },
@@ -127,5 +145,5 @@
       ]
     }
   ],
-  "p1_estimado": 0.8148148148148148
+  "p1_estimado": 0.967741935483871
 }
