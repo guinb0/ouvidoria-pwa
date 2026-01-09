@@ -2,6 +2,53 @@
 
 Sistema de ouvidoria com proteção automática de dados pessoais (PII) usando .NET 9 Web API, TypeScript/Vite e **Microsoft Presidio** para detecção inteligente de informações sensíveis.
 
+## ⚡ Quick Start - Comandos para Executar
+
+### Pré-requisitos
+- .NET 9 SDK - https://dotnet.microsoft.com/download/dotnet/9.0
+- Python 3.8+ - https://www.python.org/downloads/
+- Node.js 18+ - https://nodejs.org/
+
+### Clone o Repositório
+```bash
+git clone https://github.com/guinb0/ouvidoria-pwa.git
+cd ouvidoria-pwa
+```
+
+### Execute em 3 Terminais Separados
+
+**Terminal 1 - Presidio Service:**
+```bash
+cd presidio-service
+python -m venv venv
+# Windows PowerShell:
+.\venv\Scripts\Activate.ps1
+# Windows CMD:
+.\venv\Scripts\activate.bat
+pip install -r requirements.txt
+python -m spacy download pt_core_news_sm
+python main.py
+```
+✅ Aguarde até ver: `Uvicorn running on http://0.0.0.0:8000`
+
+**Terminal 2 - Backend .NET:**
+```bash
+cd backend/OuvidoriaApi
+dotnet restore
+dotnet run
+```
+✅ Aguarde até ver: `Now listening on: http://localhost:5080`
+
+**Terminal 3 - Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+✅ Acesse: http://localhost:5173
+
+---
+
 ## 📋 Visão Geral
 
 Este projeto demonstra um sistema completo de anonimização de dados com três componentes principais:
