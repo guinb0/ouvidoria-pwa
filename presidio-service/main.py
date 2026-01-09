@@ -56,7 +56,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)lg"}],
+)
+
+# Inicializar Presidio
+configuration = {
+    "nlp_engine_name": "spacy",
+    "models": [{"lang_code": "pt", "model_name": "pt_core_news_lg"}],
 }
 
 # Tentar carregar stanza como alternativa
@@ -70,11 +75,6 @@ if STANZA_AVAILABLE:
     except Exception as e:
         logger.warning(f"Falha ao carregar Stanza: {e}")
         stanza_nlp = None
-# Inicializar Presidio
-configuration = {
-    "nlp_engine_name": "spacy",
-    "models": [{"lang_code": "pt", "model_name": "pt_core_news_sm"}],
-}
 
 # Inicializar Flair se disponível
 flair_tagger = None
@@ -91,6 +91,18 @@ if FLAIR_AVAILABLE:
 # Inicializar Presidio com spaCy e reconhecedores customizados
 try:
     provider = NlpEngineProvider(nlp_configuration=configuration)
+    nlp_engine = provider.create_engine()
+    
+    # Criar registro de reconhecedores
+    registry = RecognizerRegistry()
+    registry.load_predefined_recognizers(nlp_engine=nlp_engine)
+    
+    # Adicionar reconhecedores brasileiros customizados
+    registry.add_recognizer(BrazilCpfRecognizer())
+    registry.add_recognizer(BrazilRgRecognizer())
+    registry.add_recognizer(BrazilCepRecognizer())
+    registry.add_recognizer(BrazilPhoneRecognizer())
+    registry.add_recognizer(BrazilCnpjRecognizer())
     registry.add_recognizer(BrazilEmailRecognizer())
     logger.info("Reconhecedores brasileiros adicionados (CPF, RG, CEP, Telefone, CNPJ, Email)")
     
@@ -103,18 +115,9 @@ try:
     elif stanza_nlp:
         logger.info("Presidio inicializado com spaCy portugues (lg) + Stanza + Reconhecedores BR")
     else:
-        logger.info("Presidio inicializado com spaCy portugues (lg)
-    registry.add_recognizer(BrazilPhoneRecognizer())
-    registry.add_recognizer(BrazilCnpjRecognizer())
-    logger.info("Reconhecedores brasileiros adicionados (CPF, RG, CEP, Telefone, CNPJ)")
-    
-    # Inicializar engines do Presidio
-    analyzer = AnalyzerEngine(nlp_engine=nlp_engine, registry=registry)
-    anonymizer = AnonymizerEngine()
-    
-    if flair_tagger:
-        logger.info("Presidio inicializado com spaCy portugues + Flair + Reconhecedores BR")
-    else: pt_core_news_lg: {e}")
+        logger.info("Presidio inicializado com spaCy portugues (lg) + Reconhecedores BR")
+except Exception as e:
+    logger.warning(f"Falha ao carregar modelo portugues pt_core_news_lg: {e}")
     logger.info("Tentando fallback para pt_core_news_sm")
     try:
         configuration["models"] = [{"lang_code": "pt", "model_name": "pt_core_news_sm"}]
@@ -132,13 +135,10 @@ try:
         anonymizer = AnonymizerEngine()
         logger.info("Presidio inicializado com spaCy portugues (sm) + Reconhecedores BR")
     except Exception as e2:
-        logger.warning(f"Falha ao carregar modelo português sm: {e2}")
-        logger.info("Inicializando com modelo inglês como fallback")
+        logger.warning(f"Falha ao carregar modelo portugues sm: {e2}")
+        logger.info("Inicializando com modelo ingles como fallback")
         analyzer = AnalyzerEngine()
-        logger.warning(f"Falha ao carregar modelo português: {e}")
-    logger.info("Inicializando com modelo inglês como fallback")
-    analyzer = AnalyzerEngine()
-    anonymizer = AnonymizerEngine()
+        anonymizer = AnonymizerEngine()
 
 
 class ProcessamentoRequest(BaseModel):
