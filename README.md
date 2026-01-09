@@ -65,7 +65,7 @@ Antes de começar, certifique-se de ter instalado:
 ### Clonando o Repositório
 
 ```bash
-git clone https://github.com/SEU-USUARIO/ouvidoria-pwa.git
+git clone https://github.com/guinb0/ouvidoria-pwa.git
 cd ouvidoria-pwa
 ```
 
