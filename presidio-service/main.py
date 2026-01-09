@@ -143,8 +143,8 @@ async def processar_texto(request: ProcessamentoRequest):
             # Para PERSON, precisa ter score alto E ter pelo menos 2 palavras (nome completo)
             if r.entity_type == "PERSON":
                 texto_detectado = request.texto[r.start:r.end]
-                # Só aceita se tem espaço (nome completo) E score >= 70%
-                if " " in texto_detectado and r.score >= 0.70:
+                # So aceita se tem espaco (nome completo) E score >= 75%
+                if " " in texto_detectado and r.score >= 0.75:
                     filtered_results.append(r)
             # Para LOCATION, precisa ter score >= 60%
             elif r.entity_type == "LOCATION":

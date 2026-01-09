@@ -11,6 +11,7 @@ class BrazilCpfRecognizer(PatternRecognizer):
     Reconhece CPF brasileiro nos formatos:
     - 000.000.000-00
     - 00000000000
+    Com validacao de contexto para evitar falsos positivos
     """
     PATTERNS = [
         Pattern(
@@ -20,12 +21,12 @@ class BrazilCpfRecognizer(PatternRecognizer):
         ),
         Pattern(
             name="cpf_without_dots",
-            regex=r"\b\d{11}\b",
-            score=0.7,  # Score menor pois pode ser outro número
+            regex=r"(?<!\d)\d{11}(?!\d)",
+            score=0.8,
         ),
     ]
 
-    CONTEXT = ["cpf", "cadastro", "documento", "identificação"]
+    CONTEXT = ["cpf", "cadastro", "documento", "identificacao", "contribuinte"]
 
     def __init__(
         self,
@@ -125,21 +126,33 @@ class BrazilPhoneRecognizer(PatternRecognizer):
     - (00) 00000-0000
     - 00 0000-0000
     - 00 00000-0000
+    - 0000000000 (10 digitos)
+    - 00000000000 (11 digitos)
     """
     PATTERNS = [
         Pattern(
             name="phone_with_parentheses",
             regex=r"\(\d{2}\)\s?\d{4,5}-\d{4}",
-            score=0.9,
+            score=0.95,
         ),
         Pattern(
             name="phone_without_parentheses",
             regex=r"\b\d{2}\s?\d{4,5}-\d{4}\b",
-            score=0.85,
+            score=0.9,
+        ),
+        Pattern(
+            name="phone_only_digits_11",
+            regex=r"\b\d{11}\b",
+            score=0.75,
+        ),
+        Pattern(
+            name="phone_only_digits_10",
+            regex=r"\b\d{10}\b",
+            score=0.7,
         ),
     ]
 
-    CONTEXT = ["telefone", "celular", "contato", "fone", "tel"]
+    CONTEXT = ["telefone", "celular", "contato", "fone", "tel", "whatsapp", "zap"]
 
     def __init__(
         self,
