@@ -15,37 +15,44 @@ git clone https://github.com/guinb0/ouvidoria-pwa.git
 cd ouvidoria-pwa
 ```
 
-### Execute em 3 Terminais Separados
+---
 
-**Terminal 1 - Presidio Service:**
-```bash
+### 🐍 Terminal 1 - Presidio Service (EXECUTAR PRIMEIRO)
+
+```powershell
 cd presidio-service
 python -m venv venv
-# Windows PowerShell:
 .\venv\Scripts\Activate.ps1
-# Windows CMD:
-.\venv\Scripts\activate.bat
 pip install -r requirements.txt
 python -m spacy download pt_core_news_sm
 python main.py
 ```
-✅ Aguarde até ver: `Uvicorn running on http://0.0.0.0:8000`
 
-**Terminal 2 - Backend .NET:**
-```bash
+**✅ Aguarde até ver:** `Uvicorn running on http://0.0.0.0:8000`
+
+---
+
+### 🔷 Terminal 2 - Backend .NET (EXECUTAR SEGUNDO)
+
+```powershell
 cd backend/OuvidoriaApi
 dotnet restore
 dotnet run
 ```
-✅ Aguarde até ver: `Now listening on: http://localhost:5080`
 
-**Terminal 3 - Frontend:**
-```bash
+**✅ Aguarde até ver:** `Now listening on: http://localhost:5080`
+
+---
+
+### 🌐 Terminal 3 - Frontend (EXECUTAR POR ÚLTIMO)
+
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
-✅ Acesse: http://localhost:5173
+
+**✅ Acesse no navegador:** http://localhost:5173
 
 ---
 

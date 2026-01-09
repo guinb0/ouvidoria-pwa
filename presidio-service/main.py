@@ -81,27 +81,34 @@ async def processar_texto(request: ProcessamentoRequest):
             "US_SSN",           # Similar a CPF
         ]
         
-        # Analisar texto
+        # Analisar texto com score threshold mais alto
         results = analyzer.analyze(
             text=request.texto,
             language=request.language,
-            entities=entities
+            entities=entities,
+            score_threshold=0.5  # Apenas detectar com confiança >= 50%
         )
+        
+        # Filtrar PERSON e LOCATION com score muito baixo para evitar falsos positivos
+        results = [
+            r for r in results 
+            if not (r.entity_type in ["PERSON", "LOCATION"] and r.score < 0.65)
+        ]
         
         logger.info(f"Found {len(results)} entities in text")
         
-        # Configurar operadores de anonimização
+        # Configurar operadores de anonimização com masks mais específicos
         operators = {
-            "PERSON": OperatorConfig("replace", {"new_value": "[NOME OCULTO]"}),
-            "EMAIL_ADDRESS": OperatorConfig("replace", {"new_value": "[EMAIL OCULTO]"}),
-            "PHONE_NUMBER": OperatorConfig("replace", {"new_value": "[TELEFONE OCULTO]"}),
-            "LOCATION": OperatorConfig("replace", {"new_value": "[ENDEREÇO OCULTO]"}),
-            "CREDIT_CARD": OperatorConfig("replace", {"new_value": "[CARTÃO OCULTO]"}),
-            "IBAN_CODE": OperatorConfig("replace", {"new_value": "[CÓDIGO BANCÁRIO OCULTO]"}),
-            "IP_ADDRESS": OperatorConfig("replace", {"new_value": "[IP OCULTO]"}),
-            "NRP": OperatorConfig("replace", {"new_value": "[CPF OCULTO]"}),
-            "US_SSN": OperatorConfig("replace", {"new_value": "[CPF OCULTO]"}),
-            "DEFAULT": OperatorConfig("replace", {"new_value": "[DADO OCULTO]"}),
+            "PERSON": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 100, "from_end": False}),
+            "EMAIL_ADDRESS": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 4, "from_end": False}),
+            "PHONE_NUMBER": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 8, "from_end": False}),
+            "LOCATION": OperatorConfig("replace", {"new_value": "[LOCAL]"}),
+            "CREDIT_CARD": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 12, "from_end": False}),
+            "IBAN_CODE": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 10, "from_end": False}),
+            "IP_ADDRESS": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 8, "from_end": False}),
+            "NRP": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 9, "from_end": False}),
+            "US_SSN": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 9, "from_end": False}),
+            "DEFAULT": OperatorConfig("replace", {"new_value": "[OCULTO]"}),
         }
         
         # Anonimizar texto

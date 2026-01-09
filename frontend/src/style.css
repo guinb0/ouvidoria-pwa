@@ -65,6 +65,11 @@ button:hover {
   padding: 12px;
   border-radius: 4px;
   min-height: 50px;
+  color: #000000;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .status-message {
