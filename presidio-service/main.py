@@ -89,25 +89,37 @@ async def processar_texto(request: ProcessamentoRequest):
             score_threshold=0.5  # Apenas detectar com confiança >= 50%
         )
         
-        # Filtrar PERSON e LOCATION com score muito baixo para evitar falsos positivos
-        results = [
-            r for r in results 
-            if not (r.entity_type in ["PERSON", "LOCATION"] and r.score < 0.65)
-        ]
+        # Filtrar PERSON com score baixo e verificar se não é apenas uma palavra
+        filtered_results = []
+        for r in results:
+            # Para PERSON, precisa ter score alto E ter pelo menos 2 palavras (nome completo)
+            if r.entity_type == "PERSON":
+                texto_detectado = request.texto[r.start:r.end]
+                # Só aceita se tem espaço (nome completo) E score >= 70%
+                if " " in texto_detectado and r.score >= 0.70:
+                    filtered_results.append(r)
+            # Para LOCATION, precisa ter score >= 60%
+            elif r.entity_type == "LOCATION":
+                if r.score >= 0.60:
+                    filtered_results.append(r)
+            # Outras entidades mantém threshold de 50%
+            else:
+                filtered_results.append(r)
         
+        results = filtered_results
         logger.info(f"Found {len(results)} entities in text")
         
-        # Configurar operadores de anonimização com masks mais específicos
+        # Configurar operadores de anonimização
         operators = {
-            "PERSON": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 100, "from_end": False}),
-            "EMAIL_ADDRESS": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 4, "from_end": False}),
-            "PHONE_NUMBER": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 8, "from_end": False}),
+            "PERSON": OperatorConfig("replace", {"new_value": "[NOME]"}),
+            "EMAIL_ADDRESS": OperatorConfig("replace", {"new_value": "[EMAIL]"}),
+            "PHONE_NUMBER": OperatorConfig("replace", {"new_value": "(XX) XXXXX-XXXX"}),
             "LOCATION": OperatorConfig("replace", {"new_value": "[LOCAL]"}),
             "CREDIT_CARD": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 12, "from_end": False}),
             "IBAN_CODE": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 10, "from_end": False}),
-            "IP_ADDRESS": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 8, "from_end": False}),
-            "NRP": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 9, "from_end": False}),
-            "US_SSN": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 9, "from_end": False}),
+            "IP_ADDRESS": OperatorConfig("replace", {"new_value": "XXX.XXX.XXX.XXX"}),
+            "NRP": OperatorConfig("replace", {"new_value": "XXX.XXX.XXX-XX"}),
+            "US_SSN": OperatorConfig("replace", {"new_value": "XXX.XXX.XXX-XX"}),
             "DEFAULT": OperatorConfig("replace", {"new_value": "[OCULTO]"}),
         }
         
