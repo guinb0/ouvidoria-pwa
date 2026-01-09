@@ -80,10 +80,15 @@ stanza_nlp = None
 flair_tagger = None
 if FLAIR_AVAILABLE:
     try:
-        logger.info("Baixando modelo Flair multilingue (pode demorar na primeira vez)...")
-        # Carregar modelo multilingue do Flair (inclui portugues)
-        flair_tagger = SequenceTagger.load('ner-multi')
-        logger.info("Modelo Flair carregado com sucesso (multilingue)")
+        logger.info("Baixando modelo Flair portugues large (pode demorar na primeira vez)...")
+        # Carregar modelo português específico (melhor que multilíngue para PT-BR)
+        try:
+            flair_tagger = SequenceTagger.load('flair/ner-portuguese-large')
+            logger.info("Modelo Flair português large carregado com sucesso")
+        except Exception:
+            # Fallback para multilíngue se português não disponível
+            flair_tagger = SequenceTagger.load('ner-multi')
+            logger.info("Modelo Flair multilingue carregado (fallback)")
     except Exception as e:
         logger.warning(f"Falha ao carregar modelo Flair: {e}")
         flair_tagger = None

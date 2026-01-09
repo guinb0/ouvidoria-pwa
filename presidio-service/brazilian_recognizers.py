@@ -10,6 +10,12 @@ try:
     EMAIL_VALIDATOR_AVAILABLE = True
 except ImportError:
     EMAIL_VALIDATOR_AVAILABLE = False
+
+try:
+    from validate_docbr import CPF, CNPJ
+    VALIDATE_DOCBR_AVAILABLE = True
+except ImportError:
+    VALIDATE_DOCBR_AVAILABLE = False
 try:
     from email_validator import validate_email, EmailNotValidError
     EMAIL_VALIDATOR_AVAILABLE = True
@@ -54,6 +60,18 @@ class BrazilCpfRecognizer(PatternRecognizer):
             context=context,
             supported_language=supported_language,
         )
+
+    def validate_result(self, pattern_text: str) -> bool:
+        """Valida CPF com checksum real (dígitos verificadores)"""
+        if not VALIDATE_DOCBR_AVAILABLE:
+            return True
+        try:
+            cpf = CPF()
+            # Remover formatação
+            cpf_limpo = pattern_text.replace(".", "").replace("-", "")
+            return cpf.validate(cpf_limpo)
+        except Exception:
+            return True
 
 
 class BrazilRgRecognizer(PatternRecognizer):
@@ -262,4 +280,16 @@ class BrazilCnpjRecognizer(PatternRecognizer):
             context=context,
             supported_language=supported_language,
         )
+
+    def validate_result(self, pattern_text: str) -> bool:
+        """Valida CNPJ com checksum real (dígitos verificadores)"""
+        if not VALIDATE_DOCBR_AVAILABLE:
+            return True
+        try:
+            cnpj = CNPJ()
+            # Remover formatação
+            cnpj_limpo = pattern_text.replace(".", "").replace("/", "").replace("-", "")
+            return cnpj.validate(cnpj_limpo)
+        except Exception:
+            return True
 
