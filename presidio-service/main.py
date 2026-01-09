@@ -61,20 +61,20 @@ app.add_middleware(
 # Inicializar Presidio
 configuration = {
     "nlp_engine_name": "spacy",
-    "models": [{"lang_code": "pt", "model_name": "pt_core_news_lg"}],
+    "models": [{"lang_code": "pt", "model_name": "pt_core_news_sm"}],
 }
 
-# Tentar carregar stanza como alternativa
+# Tentar carregar stanza como alternativa (DESABILITADO - muito lento)
 stanza_nlp = None
-if STANZA_AVAILABLE:
-    try:
-        logger.info("Baixando modelo Stanza portugues (pode demorar na primeira vez)...")
-        stanza.download('pt', logging_level='ERROR')
-        stanza_nlp = stanza.Pipeline('pt', processors='tokenize,ner', logging_level='ERROR')
-        logger.info("Modelo Stanza carregado com sucesso (transformer NER)")
-    except Exception as e:
-        logger.warning(f"Falha ao carregar Stanza: {e}")
-        stanza_nlp = None
+# if STANZA_AVAILABLE:
+#     try:
+#         logger.info("Baixando modelo Stanza portugues (pode demorar na primeira vez)...")
+#         stanza.download('pt', logging_level='ERROR')
+#         stanza_nlp = stanza.Pipeline('pt', processors='tokenize,ner', logging_level='ERROR')
+#         logger.info("Modelo Stanza carregado com sucesso (transformer NER)")
+#     except Exception as e:
+#         logger.warning(f"Falha ao carregar Stanza: {e}")
+#         stanza_nlp = None
 
 # Inicializar Flair se disponível
 flair_tagger = None
@@ -183,21 +183,21 @@ async def processar_texto(request: ProcessamentoRequest):
             text=request.texto,
             language=request.language,
             entities=entities,
-            score_threshold=0.5  # Só detecta com confiança >= 50%
+            score_threshold=0.55  # Só detecta com confiança >= 55%
         )
         
         # Filtrar PERSON com score baixo e verificar se não é apenas uma palavra
         filtered_results = []
         for r in results:
-            # Para PERSON, precisa ter score alto E ter pelo menos 2 palavras (nome completo)
+            # Para PERSON, precisa ter score alto E ter pelo menos 2 palavras ou estar em contexto
             if r.entity_type == "PERSON":
                 texto_detectado = request.texto[r.start:r.end]
-                # So aceita se tem espaco (nome completo) E score >= 75%
-                if " " in texto_detectado and r.score >= 0.75:
+                # Aceita se tem espaco OU ponto (nome.sobrenome) E score >= 75%
+                if (" " in texto_detectado or "." in texto_detectado) and r.score >= 0.75:
                     filtered_results.append(r)
-            # Para LOCATION, precisa ter score >= 60%
+            # Para LOCATION, precisa ter score >= 70%
             elif r.entity_type == "LOCATION":
-                if r.score >= 0.60:
+                if r.score >= 0.70:
                     filtered_results.append(r)
             # Outras entidades mantém threshold de 50%
             else:

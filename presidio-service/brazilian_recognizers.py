@@ -33,11 +33,11 @@ class BrazilCpfRecognizer(PatternRecognizer):
         Pattern(
             name="cpf_without_dots",
             regex=r"(?<!\d)\d{11}(?!\d)",
-            score=0.8,
+            score=0.5,
         ),
     ]
 
-    CONTEXT = ["cpf", "cadastro", "documento", "identificacao", "contribuinte"]
+    CONTEXT = ["cpf", "cadastro", "documento", "identificacao", "contribuinte", "titular", "portador"]
 
     def __init__(
         self,
@@ -70,12 +70,12 @@ class BrazilRgRecognizer(PatternRecognizer):
         ),
         Pattern(
             name="rg_without_dots",
-            regex=r"\b[0-9]{8,9}\b",
-            score=0.6,
+            regex=r"\b[0-9]{7,9}\b",
+            score=0.4,
         ),
     ]
 
-    CONTEXT = ["rg", "identidade", "carteira", "documento"]
+    CONTEXT = ["rg", "identidade", "carteira", "documento", "portador", "registro"]
 
     def __init__(
         self,
@@ -154,16 +154,16 @@ class BrazilPhoneRecognizer(PatternRecognizer):
         Pattern(
             name="phone_only_digits_11",
             regex=r"\b\d{11}\b",
-            score=0.75,
+            score=0.45,
         ),
         Pattern(
             name="phone_only_digits_10",
             regex=r"\b\d{10}\b",
-            score=0.7,
+            score=0.4,
         ),
     ]
 
-    CONTEXT = ["telefone", "celular", "contato", "fone", "tel", "whatsapp", "zap"]
+    CONTEXT = ["telefone", "celular", "contato", "fone", "tel", "whatsapp", "zap", "ligar", "falar"]
 
     def __init__(
         self,
