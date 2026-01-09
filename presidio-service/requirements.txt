@@ -6,3 +6,5 @@ pydantic>=2.0.0
 spacy>=3.7.0
 flair>=0.14.0
 torch>=2.5.0
+validate-docbr>=1.10.0  # Validacao de CPF/CNPJ brasileiros
+phonenumbers>=8.13.0    # Validacao de telefones internacionais

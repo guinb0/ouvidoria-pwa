@@ -13,7 +13,8 @@ from brazilian_recognizers import (
     BrazilCpfRecognizer,
     BrazilRgRecognizer,
     BrazilCepRecognizer,
-    BrazilPhoneRecognizer
+    BrazilPhoneRecognizer,
+    BrazilCnpjRecognizer
 )
 
 # Tentar importar Flair para NER de alta precisão
@@ -76,7 +77,8 @@ try:
     registry.add_recognizer(BrazilRgRecognizer())
     registry.add_recognizer(BrazilCepRecognizer())
     registry.add_recognizer(BrazilPhoneRecognizer())
-    logger.info("Reconhecedores brasileiros adicionados (CPF, RG, CEP, Telefone)")
+    registry.add_recognizer(BrazilCnpjRecognizer())
+    logger.info("Reconhecedores brasileiros adicionados (CPF, RG, CEP, Telefone, CNPJ)")
     
     # Inicializar engines do Presidio
     analyzer = AnalyzerEngine(nlp_engine=nlp_engine, registry=registry)
@@ -126,6 +128,7 @@ async def processar_texto(request: ProcessamentoRequest):
             "BR_CPF",           # CPF brasileiro (custom)
             "BR_RG",            # RG brasileiro (custom)
             "BR_CEP",           # CEP brasileiro (custom)
+            "BR_CNPJ",          # CNPJ brasileiro (custom)
             "BR_PHONE",         # Telefone brasileiro (custom)
         ]
         
@@ -172,6 +175,7 @@ async def processar_texto(request: ProcessamentoRequest):
             "BR_RG": OperatorConfig("replace", {"new_value": "XX.XXX.XXX-X"}),
             "BR_CEP": OperatorConfig("replace", {"new_value": "XXXXX-XXX"}),
             "BR_PHONE": OperatorConfig("replace", {"new_value": "(XX) XXXXX-XXXX"}),
+            "BR_CNPJ": OperatorConfig("replace", {"new_value": "XX.XXX.XXX/XXXX-XX"}),
             "DEFAULT": OperatorConfig("replace", {"new_value": "[OCULTO]"}),
         }
         
