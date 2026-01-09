@@ -8,9 +8,22 @@ from presidio_anonymizer.entities import OperatorConfig
 from typing import List, Dict, Any
 import logging
 
+# Tentar importar Flair para NER de alta precisão
+try:
+    from flair.data import Sentence
+    from flair.models import SequenceTagger
+    FLAIR_AVAILABLE = True
+except ImportError:
+    FLAIR_AVAILABLE = False
+
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+if FLAIR_AVAILABLE:
+    logger.info("✅ Flair disponível para NER de alta precisão")
+else:
+    logger.warning("⚠️ Flair não instalado, usando apenas spaCy")
 
 app = FastAPI(title="Ouvidoria Presidio Service", version="1.0.0")
 
@@ -29,7 +42,19 @@ configuration = {
     "models": [{"lang_code": "pt", "model_name": "pt_core_news_sm"}],
 }
 
-try:
+# Inicializar Flair se disponível
+flair_tagger = None
+if FLAIR_AVAILABLE:
+    try:
+        logger.info("📥 Baixando modelo Flair multilíngue (pode demorar na primeira vez)...")
+        # Carregar modelo multilíngue do Flair (inclui português)
+        flair_tagger = SequenceTagger.load('ner-multi')
+        logger.info("✅ Flair NER model loaded successfully (multilingual)")
+        logger.info("Flair NER model loaded successfully (multilingual)")
+    except Exception as e:
+        logger.warning(f"Failed to load Flair model: {e}")
+        flair_tagger = None
+
     provider = NlpEngineProvider(nlp_configuration=configuration)
     nlp_engine = provider.create_engine()
     
@@ -41,7 +66,10 @@ try:
     analyzer = AnalyzerEngine(nlp_engine=nlp_engine, registry=registry)
     anonymizer = AnonymizerEngine()
     
-    logger.info("Presidio initialized successfully with Portuguese support")
+    if flair_tagger:
+        logger.info("Presidio initialized with Portuguese spaCy + Flair NER")
+    else:
+        logger.info("Presidio initialized with Portuguese spaCy only")
 except Exception as e:
     logger.warning(f"Failed to load Portuguese model: {e}")
     logger.info("Initializing with English model as fallback")

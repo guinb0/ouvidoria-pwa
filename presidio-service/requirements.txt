@@ -4,3 +4,5 @@ fastapi>=0.104.0
 uvicorn>=0.24.0
 pydantic>=2.0.0
 spacy>=3.7.0
+flair>=0.14.0
+torch>=2.5.0

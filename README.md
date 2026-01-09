@@ -142,10 +142,10 @@ source venv/bin/activate
 # Instalar dependências
 pip install -r requirements.txt
 
-# Baixar modelo português do spaCy (IMPORTANTE!)
+# Baixar modelos (IMPORTANTE!)
 python -m spacy download pt_core_news_sm
 
-# Executar serviço
+# Executar serviço (Flair será baixado automaticamente na primeira execução)
 python main.py
 ```
 
