@@ -201,7 +201,7 @@ async def processar_texto(request: ProcessamentoRequest):
         person_blacklist = ["documento", "protocolo", "email", "cpf", "rg", "cnpj", "cep"]
         
         # Palavras que não devem ser detectadas como LOCATION
-        location_blacklist = ["fixo", "celular", "email", "tel", "fone", "documento", "protocolo", "reside", "resido"]
+        location_blacklist = ["fixo", "celular", "email", "tel", "fone", "documento", "protocolo"]
         
         for r in results:
             skip = False
@@ -230,13 +230,13 @@ async def processar_texto(request: ProcessamentoRequest):
             elif r.entity_type == "LOCATION":
                 texto_detectado = request.texto[r.start:r.end].lower()
                 
-                # Verificar blacklist
-                if any(palavra == texto_detectado for palavra in location_blacklist):
+                # Verificar blacklist (exact match)
+                if texto_detectado in location_blacklist:
                     skip = True
                 
-                # Filtrar siglas curtas (2-5 letras maiúsculas)
+                # Filtrar apenas siglas muito curtas (2-4 letras maiúsculas) SEM espaços
                 texto_original = request.texto[r.start:r.end]
-                if len(texto_original) <= 5 and texto_original.isupper():
+                if len(texto_original) <= 4 and texto_original.isupper() and " " not in texto_original:
                     skip = True
                 
                 if not skip and r.score >= 0.70:
