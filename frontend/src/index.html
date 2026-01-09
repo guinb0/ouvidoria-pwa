@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Participa DF – Ouvidoria</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <main class="container">
+    <h1>Registro de Ouvidoria</h1>
+    <p class="subtitle">
+      Descreva sua manifestação abaixo. Informações pessoais serão protegidas automaticamente pela nossa API.
+    </p>
+
+    <div id="statusMessage" class="status-message" style="display: none;"></div>
+
+    <textarea id="inputText" placeholder="Digite aqui sua manifestação..."></textarea>
+
+    <button id="submitButton">Enviar manifestação</button>
+
+    <section class="result">
+      <h2>Manifestação registrada</h2>
+      <p id="outputText"></p>
+    </section>
+  </main>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

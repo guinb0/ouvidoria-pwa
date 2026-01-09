@@ -1,0 +1,6 @@
+@OuvidoriaApi_HostAddress = http://localhost:5080
+
+GET {{OuvidoriaApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
