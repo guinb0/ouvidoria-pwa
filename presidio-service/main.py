@@ -188,18 +188,73 @@ async def processar_texto(request: ProcessamentoRequest):
         
         # Filtrar PERSON com score baixo e verificar se não é apenas uma palavra
         filtered_results = []
+        
+        # Criar índice de spans para detectar sobreposições
+        entity_spans = {}
         for r in results:
-            # Para PERSON, precisa ter score alto E ter pelo menos 2 palavras ou estar em contexto
+            key = (r.start, r.end)
+            if key not in entity_spans:
+                entity_spans[key] = []
+            entity_spans[key].append(r)
+        
+        # Palavras que não devem ser detectadas como PERSON
+        person_blacklist = ["documento", "protocolo", "email", "cpf", "rg", "cnpj", "cep"]
+        
+        # Palavras que não devem ser detectadas como LOCATION
+        location_blacklist = ["fixo", "celular", "email", "tel", "fone", "documento", "protocolo", "reside", "resido"]
+        
+        for r in results:
+            skip = False
+            
+            # Para PERSON
             if r.entity_type == "PERSON":
-                texto_detectado = request.texto[r.start:r.end]
-                # Aceita se tem espaco OU ponto (nome.sobrenome) E score >= 75%
-                if (" " in texto_detectado or "." in texto_detectado) and r.score >= 0.75:
+                texto_detectado = request.texto[r.start:r.end].lower()
+                
+                # Verificar blacklist
+                if any(palavra in texto_detectado for palavra in person_blacklist):
+                    skip = True
+                
+                # Se sobrepõe com EMAIL_ADDRESS, priorizar EMAIL
+                span_key = (r.start, r.end)
+                if span_key in entity_spans:
+                    for other in entity_spans[span_key]:
+                        if other.entity_type == "EMAIL_ADDRESS":
+                            skip = True
+                            break
+                
+                # Verificar se é um nome válido (espaço ou ponto) e score >= 75%
+                if not skip and (" " in request.texto[r.start:r.end] or "." in request.texto[r.start:r.end]) and r.score >= 0.75:
                     filtered_results.append(r)
-            # Para LOCATION, precisa ter score >= 70%
+                    
+            # Para LOCATION
             elif r.entity_type == "LOCATION":
-                if r.score >= 0.70:
+                texto_detectado = request.texto[r.start:r.end].lower()
+                
+                # Verificar blacklist
+                if any(palavra == texto_detectado for palavra in location_blacklist):
+                    skip = True
+                
+                # Filtrar siglas curtas (2-5 letras maiúsculas)
+                texto_original = request.texto[r.start:r.end]
+                if len(texto_original) <= 5 and texto_original.isupper():
+                    skip = True
+                
+                if not skip and r.score >= 0.70:
                     filtered_results.append(r)
-            # Outras entidades mantém threshold de 50%
+                    
+            # Para BR_CPF e BR_PHONE - remover duplicatas
+            elif r.entity_type in ["BR_CPF", "BR_PHONE"]:
+                # Se mesmo span tem CPF e PHONE, priorizar CPF (score mais alto)
+                span_key = (r.start, r.end)
+                if span_key in entity_spans and len(entity_spans[span_key]) > 1:
+                    # Pegar entidade com maior score
+                    max_score_entity = max(entity_spans[span_key], key=lambda x: x.score)
+                    if r == max_score_entity:
+                        filtered_results.append(r)
+                else:
+                    filtered_results.append(r)
+                    
+            # Outras entidades mantém threshold de 55%
             else:
                 filtered_results.append(r)
         

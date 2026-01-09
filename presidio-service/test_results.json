@@ -1,0 +1,398 @@
+{
+  "metricas": {
+    "precisao": 0.8571428571428571,
+    "recall": 0.967741935483871,
+    "f1_score": 0.909090909090909,
+    "vp": 30,
+    "fp": 5,
+    "fn": 1
+  },
+  "metricas_por_tipo": {
+    "BR_CEP": {
+      "precisao": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "vp": 3,
+      "fp": 0,
+      "fn": 0
+    },
+    "BR_CNPJ": {
+      "precisao": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "vp": 1,
+      "fp": 0,
+      "fn": 0
+    },
+    "BR_CPF": {
+      "precisao": 0.8,
+      "recall": 1.0,
+      "f1_score": 0.888888888888889,
+      "vp": 4,
+      "fp": 1,
+      "fn": 0
+    },
+    "BR_PHONE": {
+      "precisao": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "vp": 5,
+      "fp": 0,
+      "fn": 0
+    },
+    "BR_RG": {
+      "precisao": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "vp": 2,
+      "fp": 0,
+      "fn": 0
+    },
+    "EMAIL_ADDRESS": {
+      "precisao": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "vp": 4,
+      "fp": 0,
+      "fn": 0
+    },
+    "LOCATION": {
+      "precisao": 0.7142857142857143,
+      "recall": 1.0,
+      "f1_score": 0.8333333333333333,
+      "vp": 5,
+      "fp": 2,
+      "fn": 0
+    },
+    "PERSON": {
+      "precisao": 0.75,
+      "recall": 0.8571428571428571,
+      "f1_score": 0.7999999999999999,
+      "vp": 6,
+      "fp": 2,
+      "fn": 1
+    }
+  },
+  "resultados_detalhados": [
+    {
+      "caso": 1,
+      "nome": "Caso 1: Dados pessoais completos",
+      "vp": 3,
+      "fp": 0,
+      "fn": 0,
+      "entidades_detectadas": [
+        {
+          "tipo": "BR_CPF",
+          "inicio": 34,
+          "fim": 48,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "BR_PHONE",
+          "inicio": 65,
+          "fim": 80,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "PERSON",
+          "inicio": 11,
+          "fim": 21,
+          "confianca": 0.85
+        }
+      ]
+    },
+    {
+      "caso": 2,
+      "nome": "Caso 2: Email e documentos",
+      "vp": 3,
+      "fp": 1,
+      "fn": 0,
+      "entidades_detectadas": [
+        {
+          "tipo": "EMAIL_ADDRESS",
+          "inicio": 7,
+          "fim": 31,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "BR_RG",
+          "inicio": 36,
+          "fim": 48,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "BR_CEP",
+          "inicio": 54,
+          "fim": 63,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "PERSON",
+          "inicio": 7,
+          "fim": 34,
+          "confianca": 0.85
+        }
+      ]
+    },
+    {
+      "caso": 3,
+      "nome": "Caso 3: Localização e email",
+      "vp": 3,
+      "fp": 0,
+      "fn": 0,
+      "entidades_detectadas": [
+        {
+          "tipo": "EMAIL_ADDRESS",
+          "inicio": 51,
+          "fim": 65,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "LOCATION",
+          "inicio": 10,
+          "fim": 24,
+          "confianca": 0.85
+        },
+        {
+          "tipo": "LOCATION",
+          "inicio": 31,
+          "fim": 40,
+          "confianca": 0.85
+        }
+      ]
+    },
+    {
+      "caso": 4,
+      "nome": "Caso 4: Documentos sem formatação",
+      "vp": 2,
+      "fp": 2,
+      "fn": 0,
+      "entidades_detectadas": [
+        {
+          "tipo": "PERSON",
+          "inicio": 0,
+          "fim": 13,
+          "confianca": 0.85
+        },
+        {
+          "tipo": "BR_CPF",
+          "inicio": 14,
+          "fim": 25,
+          "confianca": 0.85
+        },
+        {
+          "tipo": "BR_CPF",
+          "inicio": 51,
+          "fim": 62,
+          "confianca": 0.85
+        },
+        {
+          "tipo": "BR_PHONE",
+          "inicio": 51,
+          "fim": 62,
+          "confianca": 0.8
+        }
+      ]
+    },
+    {
+      "caso": 5,
+      "nome": "Caso 5: Nome completo e CEP",
+      "vp": 2,
+      "fp": 0,
+      "fn": 0,
+      "entidades_detectadas": [
+        {
+          "tipo": "BR_CEP",
+          "inicio": 67,
+          "fim": 76,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "PERSON",
+          "inicio": 34,
+          "fim": 48,
+          "confianca": 0.85
+        }
+      ]
+    },
+    {
+      "caso": 6,
+      "nome": "Caso 6: CNPJ e razão social",
+      "vp": 2,
+      "fp": 0,
+      "fn": 0,
+      "entidades_detectadas": [
+        {
+          "tipo": "BR_CNPJ",
+          "inicio": 22,
+          "fim": 40,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "EMAIL_ADDRESS",
+          "inicio": 49,
+          "fim": 73,
+          "confianca": 1.0
+        }
+      ]
+    },
+    {
+      "caso": 7,
+      "nome": "Caso 7: Múltiplas pessoas",
+      "vp": 3,
+      "fp": 0,
+      "fn": 0,
+      "entidades_detectadas": [
+        {
+          "tipo": "PERSON",
+          "inicio": 14,
+          "fim": 23,
+          "confianca": 0.85
+        },
+        {
+          "tipo": "PERSON",
+          "inicio": 25,
+          "fim": 38,
+          "confianca": 0.85
+        },
+        {
+          "tipo": "PERSON",
+          "inicio": 41,
+          "fim": 54,
+          "confianca": 0.85
+        }
+      ]
+    },
+    {
+      "caso": 8,
+      "nome": "Caso 8: Edge case - Números similares a CPF",
+      "vp": 1,
+      "fp": 0,
+      "fn": 0,
+      "entidades_detectadas": [
+        {
+          "tipo": "BR_CPF",
+          "inicio": 47,
+          "fim": 61,
+          "confianca": 1.0
+        }
+      ]
+    },
+    {
+      "caso": 9,
+      "nome": "Caso 9: Telefones variados",
+      "vp": 2,
+      "fp": 1,
+      "fn": 0,
+      "entidades_detectadas": [
+        {
+          "tipo": "BR_PHONE",
+          "inicio": 30,
+          "fim": 45,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "BR_PHONE",
+          "inicio": 5,
+          "fim": 19,
+          "confianca": 0.95
+        },
+        {
+          "tipo": "LOCATION",
+          "inicio": 0,
+          "fim": 4,
+          "confianca": 0.85
+        }
+      ]
+    },
+    {
+      "caso": 10,
+      "nome": "Caso 10: Mix complexo",
+      "vp": 5,
+      "fp": 0,
+      "fn": 0,
+      "entidades_detectadas": [
+        {
+          "tipo": "BR_CPF",
+          "inicio": 36,
+          "fim": 50,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "BR_CEP",
+          "inicio": 75,
+          "fim": 84,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "PERSON",
+          "inicio": 18,
+          "fim": 35,
+          "confianca": 0.85
+        },
+        {
+          "tipo": "LOCATION",
+          "inicio": 59,
+          "fim": 67,
+          "confianca": 0.85
+        },
+        {
+          "tipo": "BR_PHONE",
+          "inicio": 89,
+          "fim": 100,
+          "confianca": 0.8
+        }
+      ]
+    },
+    {
+      "caso": 11,
+      "nome": "Caso 11: Email institucional e RG",
+      "vp": 2,
+      "fp": 1,
+      "fn": 1,
+      "entidades_detectadas": [
+        {
+          "tipo": "EMAIL_ADDRESS",
+          "inicio": 21,
+          "fim": 35,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "LOCATION",
+          "inicio": 69,
+          "fim": 74,
+          "confianca": 0.85
+        },
+        {
+          "tipo": "BR_RG",
+          "inicio": 51,
+          "fim": 58,
+          "confianca": 0.75
+        }
+      ]
+    },
+    {
+      "caso": 12,
+      "nome": "Caso 12: Endereço completo",
+      "vp": 2,
+      "fp": 0,
+      "fn": 0,
+      "entidades_detectadas": [
+        {
+          "tipo": "LOCATION",
+          "inicio": 0,
+          "fim": 6,
+          "confianca": 0.85
+        },
+        {
+          "tipo": "LOCATION",
+          "inicio": 48,
+          "fim": 60,
+          "confianca": 0.85
+        }
+      ]
+    }
+  ],
+  "p1_estimado": 0.909090909090909,
+  "total_casos_teste": 12
+}

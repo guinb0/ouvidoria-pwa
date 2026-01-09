@@ -71,7 +71,7 @@ class BrazilRgRecognizer(PatternRecognizer):
         Pattern(
             name="rg_without_dots",
             regex=r"\b[0-9]{7,9}\b",
-            score=0.4,
+            score=0.5,
         ),
     ]
 
