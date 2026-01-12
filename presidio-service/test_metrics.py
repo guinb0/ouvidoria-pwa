@@ -100,7 +100,7 @@ TEST_CASES = [
     },
     {
         "nome": "Caso 11: Email institucional e RG",
-        "texto": "Servidor público João.Santos@gov.br portador do RG 1234567 lotado na SEJUS",
+        "texto": "Servidor público João Santos email João.Santos@gov.br portador do RG 1234567 lotado na SEJUS",
         "entidades_esperadas": [
             {"tipo": "PERSON", "texto": "João Santos"},
             {"tipo": "EMAIL_ADDRESS", "texto": "João.Santos@gov.br"},

@@ -1,11 +1,11 @@
 {
   "metricas": {
-    "precisao": 0.9032258064516129,
-    "recall": 0.9032258064516129,
-    "f1_score": 0.9032258064516129,
-    "vp": 28,
-    "fp": 3,
-    "fn": 3
+    "precisao": 0.8823529411764706,
+    "recall": 0.967741935483871,
+    "f1_score": 0.923076923076923,
+    "vp": 30,
+    "fp": 4,
+    "fn": 1
   },
   "metricas_por_tipo": {
     "BR_CEP": {
@@ -25,20 +25,20 @@
       "fn": 0
     },
     "BR_CPF": {
-      "precisao": 0.6666666666666666,
-      "recall": 1.0,
-      "f1_score": 0.8,
-      "vp": 4,
-      "fp": 2,
-      "fn": 0
-    },
-    "BR_PHONE": {
       "precisao": 1.0,
-      "recall": 0.8,
-      "f1_score": 0.888888888888889,
-      "vp": 4,
+      "recall": 0.75,
+      "f1_score": 0.8571428571428571,
+      "vp": 3,
       "fp": 0,
       "fn": 1
+    },
+    "BR_PHONE": {
+      "precisao": 0.7142857142857143,
+      "recall": 1.0,
+      "f1_score": 0.8333333333333333,
+      "vp": 5,
+      "fp": 2,
+      "fn": 0
     },
     "BR_RG": {
       "precisao": 1.0,
@@ -65,12 +65,12 @@
       "fn": 0
     },
     "PERSON": {
-      "precisao": 1.0,
-      "recall": 0.7142857142857143,
-      "f1_score": 0.8333333333333333,
-      "vp": 5,
-      "fp": 0,
-      "fn": 2
+      "precisao": 0.875,
+      "recall": 1.0,
+      "f1_score": 0.9333333333333333,
+      "vp": 7,
+      "fp": 1,
+      "fn": 0
     }
   },
   "resultados_detalhados": [
@@ -159,20 +159,26 @@
       "caso": 4,
       "nome": "Caso 4: Documentos sem formatação",
       "vp": 1,
-      "fp": 1,
+      "fp": 2,
       "fn": 1,
       "entidades_detectadas": [
         {
-          "tipo": "BR_CPF",
+          "tipo": "BR_PHONE",
           "inicio": 14,
           "fim": 25,
-          "confianca": 0.9
+          "confianca": 1.0
         },
         {
-          "tipo": "BR_CPF",
+          "tipo": "BR_PHONE",
           "inicio": 51,
           "fim": 62,
-          "confianca": 0.9
+          "confianca": 1.0
+        },
+        {
+          "tipo": "PERSON",
+          "inicio": 0,
+          "fim": 13,
+          "confianca": 0.85
         }
       ]
     },
@@ -253,16 +259,16 @@
       "fn": 0,
       "entidades_detectadas": [
         {
-          "tipo": "BR_CPF",
-          "inicio": 47,
-          "fim": 61,
+          "tipo": "BR_PHONE",
+          "inicio": 12,
+          "fim": 23,
           "confianca": 1.0
         },
         {
           "tipo": "BR_CPF",
-          "inicio": 12,
-          "fim": 23,
-          "confianca": 0.55
+          "inicio": 47,
+          "fim": 61,
+          "confianca": 1.0
         }
       ]
     },
@@ -275,24 +281,24 @@
       "entidades_detectadas": [
         {
           "tipo": "BR_PHONE",
-          "inicio": 30,
-          "fim": 45,
+          "inicio": 5,
+          "fim": 19,
           "confianca": 1.0
         },
         {
           "tipo": "BR_PHONE",
-          "inicio": 5,
-          "fim": 19,
-          "confianca": 0.95
+          "inicio": 30,
+          "fim": 45,
+          "confianca": 1.0
         }
       ]
     },
     {
       "caso": 10,
       "nome": "Caso 10: Mix complexo",
-      "vp": 4,
+      "vp": 5,
       "fp": 0,
-      "fn": 1,
+      "fn": 0,
       "entidades_detectadas": [
         {
           "tipo": "BR_CPF",
@@ -307,15 +313,21 @@
           "confianca": 1.0
         },
         {
-          "tipo": "LOCATION",
-          "inicio": 59,
-          "fim": 67,
-          "confianca": 0.85
-        },
-        {
           "tipo": "BR_PHONE",
           "inicio": 89,
           "fim": 100,
+          "confianca": 1.0
+        },
+        {
+          "tipo": "PERSON",
+          "inicio": 18,
+          "fim": 35,
+          "confianca": 0.85
+        },
+        {
+          "tipo": "LOCATION",
+          "inicio": 59,
+          "fim": 67,
           "confianca": 0.85
         }
       ]
@@ -323,26 +335,32 @@
     {
       "caso": 11,
       "nome": "Caso 11: Email institucional e RG",
-      "vp": 2,
+      "vp": 3,
       "fp": 1,
-      "fn": 1,
+      "fn": 0,
       "entidades_detectadas": [
         {
           "tipo": "EMAIL_ADDRESS",
-          "inicio": 21,
-          "fim": 35,
+          "inicio": 39,
+          "fim": 53,
           "confianca": 1.0
         },
         {
+          "tipo": "PERSON",
+          "inicio": 17,
+          "fim": 28,
+          "confianca": 0.85
+        },
+        {
           "tipo": "BR_RG",
-          "inicio": 51,
-          "fim": 58,
+          "inicio": 69,
+          "fim": 76,
           "confianca": 0.85
         },
         {
           "tipo": "LOCATION",
-          "inicio": 69,
-          "fim": 74,
+          "inicio": 87,
+          "fim": 92,
           "confianca": 0.85
         }
       ]
@@ -369,6 +387,6 @@
       ]
     }
   ],
-  "p1_estimado": 0.9032258064516129,
+  "p1_estimado": 0.923076923076923,
   "total_casos_teste": 12
 }

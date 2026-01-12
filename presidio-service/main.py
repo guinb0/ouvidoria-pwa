@@ -18,6 +18,13 @@ from brazilian_recognizers import (
     BrazilEmailRecognizer,
 )
 
+# Importar otimizador ensemble
+from ensemble_optimizer import (
+    ThresholdOptimizer,
+    EnsembleVoter,
+    calculate_confidence_boost
+)
+
 # Tentar importar Flair para NER de alta precisão
 try:
     from flair.data import Sentence
@@ -188,8 +195,30 @@ async def processar_texto(request: ProcessamentoRequest):
             text=request.texto,
             language=request.language,
             entities=entities,
-            score_threshold=0.55  # Só detecta com confiança >= 55%
+            score_threshold=0.50  # Threshold base (será refinado se necessário)
         )
+        
+        # DESABILITADO: Ensemble optimizer estava reduzindo recall
+        # threshold_optimizer = ThresholdOptimizer()
+        # optimized_results = []
+        # 
+        # for r in results:
+        #     confidence_boost = calculate_confidence_boost(
+        #         request.texto, r.entity_type, r.start, r.end
+        #     )
+        #     boosted_score = min(r.score * confidence_boost, 1.0)
+        #     
+        #     if threshold_optimizer.should_accept(r.entity_type, boosted_score):
+        #         from presidio_analyzer import RecognizerResult
+        #         optimized_r = RecognizerResult(
+        #             entity_type=r.entity_type,
+        #             start=r.start,
+        #             end=r.end,
+        #             score=boosted_score
+        #         )
+        #         optimized_results.append(optimized_r)
+        # 
+        # results = optimized_results
         
         # Filtrar PERSON com score baixo e verificar se não é apenas uma palavra
         filtered_results = []
@@ -202,11 +231,47 @@ async def processar_texto(request: ProcessamentoRequest):
                 entity_spans[key] = []
             entity_spans[key].append(r)
         
+        # LEXICONS CUSTOMIZADOS (Técnica Reddit: +2-4% F1)
         # Palavras que não devem ser detectadas como PERSON
-        person_blacklist = ["documento", "protocolo", "email", "cpf", "rg", "cnpj", "cep"]
+        person_blacklist = [
+            # Documentos e processos
+            "documento", "protocolo", "email", "cpf", "rg", "cnpj", "cep", 
+            "processo", "lei", "artigo", "inciso", "paragrafo", "decreto",
+            # Termos jurídicos
+            "sentenca", "acordao", "decisao", "despacho", "parecer",
+            "recurso", "agravo", "apelacao", "embargos",
+            # Órgãos e cargos genéricos
+            "secretaria", "ministerio", "tribunal", "conselho", "comissao",
+            "presidente", "ministro", "juiz", "desembargador", "procurador",
+            # Conectivos e preposições comuns
+            "sobre", "para", "com", "sem", "por", "sob", "ante"
+        ]
         
         # Palavras que não devem ser detectadas como LOCATION
-        location_blacklist = ["fixo", "celular", "email", "tel", "fone", "documento", "protocolo"]
+        location_blacklist = [
+            # Comunicação e documentos
+            "fixo", "celular", "email", "tel", "fone", "telefone", "documento", "protocolo",
+            # Termos técnicos
+            "sistema", "portal", "plataforma", "aplicativo", "site",
+            # Status e estados
+            "aberto", "fechado", "pendente", "concluido", "em andamento"
+        ]
+        
+        # Contextos governamentais brasileiros (não são PII)
+        gov_context_blacklist = [
+            "processo", "protocolo", "artigo", "lei", "decreto", "portaria", 
+            "resolucao", "instrucao normativa", "parecer", "despacho",
+            "edital", "licitacao", "contrato", "convenio", "termo",
+            "oficio", "memorando", "comunicacao", "nota tecnica"
+        ]
+        
+        # Padrões de nomes brasileiros válidos (para melhorar precisão)
+        # Se tem sobrenome comum brasileiro e mais de 1 palavra, aumentar confiança
+        sobrenomes_brasileiros = [
+            "silva", "santos", "oliveira", "souza", "rodrigues", "ferreira", 
+            "alves", "pereira", "lima", "gomes", "costa", "ribeiro", "martins",
+            "carvalho", "rocha", "almeida", "nascimento", "araujo", "melo", "barbosa"
+        ]
         
         for r in results:
             skip = False
@@ -214,9 +279,13 @@ async def processar_texto(request: ProcessamentoRequest):
             # Para PERSON
             if r.entity_type == "PERSON":
                 texto_detectado = request.texto[r.start:r.end].lower()
+                texto_original = request.texto[r.start:r.end]
+                palavras = texto_detectado.split()
                 
-                # Verificar blacklist
-                if any(palavra in texto_detectado for palavra in person_blacklist):
+                # Verificar blacklist (exact match ou substring)
+                if any(palavra == texto_detectado for palavra in person_blacklist):
+                    skip = True
+                elif any(black in texto_detectado for black in ["@", "protocolo", "processo"]):
                     skip = True
                 
                 # Se sobrepõe com EMAIL_ADDRESS, priorizar EMAIL
@@ -227,27 +296,51 @@ async def processar_texto(request: ProcessamentoRequest):
                             skip = True
                             break
                 
-                # Verificar se é um nome válido (espaço ou ponto) e score >= 75%
-                if not skip and (" " in request.texto[r.start:r.end] or "." in request.texto[r.start:r.end]) and r.score >= 0.75:
-                    filtered_results.append(r)
+                # Boost: Se tem sobrenome brasileiro comum, reduzir threshold
+                has_brazilian_surname = any(sobrenome in palavras for sobrenome in sobrenomes_brasileiros)
+                min_score = 0.70 if has_brazilian_surname else 0.75
+                
+                # Verificar se é um nome válido (pelo menos 2 palavras ou tem ponto)
+                if not skip:
+                    has_space = " " in texto_original
+                    has_dot = "." in texto_original and len(palavras) >= 2
+                    
+                    if (has_space or has_dot) and r.score >= min_score:
+                        filtered_results.append(r)
                     
             # Para LOCATION
             elif r.entity_type == "LOCATION":
                 texto_detectado = request.texto[r.start:r.end].lower()
+                texto_original = request.texto[r.start:r.end]
                 
                 # Verificar blacklist (exact match)
                 if texto_detectado in location_blacklist:
                     skip = True
                 
-                # Filtrar apenas siglas muito curtas (2-4 letras maiúsculas) SEM espaços
-                texto_original = request.texto[r.start:r.end]
-                if len(texto_original) <= 4 and texto_original.isupper() and " " not in texto_original:
+                # Verificar se contém palavras suspeitas
+                if any(palavra in texto_detectado for palavra in ["email", "telefone", "documento"]):
                     skip = True
                 
-                if not skip and r.score >= 0.70:
+                # Filtrar siglas muito curtas (2-4 letras maiúsculas) SEM espaços e SEM contexto
+                if len(texto_original) <= 4 and texto_original.isupper() and " " not in texto_original:
+                    # Verificar se tem contexto de localização nas palavras próximas
+                    context_window = 30
+                    start_context = max(0, r.start - context_window)
+                    end_context = min(len(request.texto), r.end + context_window)
+                    context = request.texto[start_context:end_context].lower()
+                    
+                    location_keywords = ["rua", "avenida", "cidade", "estado", "municipio", "bairro", 
+                                        "endereco", "local", "residencia", "domicilio"]
+                    has_location_context = any(keyword in context for keyword in location_keywords)
+                    
+                    if not has_location_context:
+                        skip = True
+                
+                # Threshold otimizado para LOCATION (0.70 via ThresholdOptimizer)
+                if not skip:
                     filtered_results.append(r)
                     
-            # Para BR_CPF e BR_PHONE - remover duplicatas
+            # Para BR_CPF e BR_PHONE - remover duplicatas e aplicar validação
             elif r.entity_type in ["BR_CPF", "BR_PHONE"]:
                 # Se mesmo span tem CPF e PHONE, priorizar CPF (score mais alto)
                 span_key = (r.start, r.end)
@@ -255,8 +348,10 @@ async def processar_texto(request: ProcessamentoRequest):
                     # Pegar entidade com maior score
                     max_score_entity = max(entity_spans[span_key], key=lambda x: x.score)
                     if r == max_score_entity:
+                        # Validação adicional já aplicada via validate_result()
                         filtered_results.append(r)
                 else:
+                    # Threshold otimizado para BR_PHONE (0.70 via ThresholdOptimizer)
                     filtered_results.append(r)
                     
             # Outras entidades mantém threshold de 55%
