@@ -6,7 +6,7 @@ Sistema de ouvidoria com proteção automática de dados pessoais (PII) usando .
 
 ### Pré-requisitos
 - .NET 9 SDK - https://dotnet.microsoft.com/download/dotnet/9.0
-- Python 3.8+ - https://www.python.org/downloads/
+- Python 3.8 -> 3.12 - https://www.python.org/downloads/
 - Node.js 18+ - https://nodejs.org/
 
 ### Clone o Repositório
@@ -21,10 +21,7 @@ cd ouvidoria-pwa
 
 ```powershell
 cd presidio-service
-python -m venv venv
-.\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-python -m spacy download pt_core_news_lg
 python main.py
 ```
 
