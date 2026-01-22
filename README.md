@@ -7,7 +7,7 @@ Sistema de ouvidoria com proteção automática de dados pessoais (PII) usando .
 ### Pré-requisitos
 - .NET 9 SDK - https://dotnet.microsoft.com/download/dotnet/9.0
 - Python 3.8 -> 3.12 - https://www.python.org/downloads/
-- Node.js 18+ - https://nodejs.org/
+- Node.js 20.19+ - https://nodejs.org/
 
 ### Clone o Repositório
 ```bash
