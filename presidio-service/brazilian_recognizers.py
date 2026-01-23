@@ -338,3 +338,652 @@ class BrazilCnpjRecognizer(PatternRecognizer):
         #         return CNPJ_VALIDATOR.validate(cnpj_limpo)
         return None  # Aceitar (não rejeitar)
 
+
+# ==================== RECONHECEDORES LGPD EXPANDIDOS ====================
+# Dados pessoais básicos
+
+class BrazilDateOfBirthRecognizer(PatternRecognizer):
+    """
+    Reconhece datas de nascimento nos formatos:
+    - DD/MM/AAAA
+    - DD-MM-AAAA
+    - DD.MM.AAAA
+    """
+    PATTERNS = [
+        Pattern(
+            name="date_br_slash",
+            regex=r"\b\d{2}/\d{2}/\d{4}\b",
+            score=0.70,
+        ),
+        Pattern(
+            name="date_br_dash",
+            regex=r"\b\d{2}-\d{2}-\d{4}\b",
+            score=0.70,
+        ),
+        Pattern(
+            name="date_br_dot",
+            regex=r"\b\d{2}\.\d{2}\.\d{4}\b",
+            score=0.70,
+        ),
+    ]
+
+    CONTEXT = ["nascimento", "nascido", "nascida", "data de nascimento", "nasc", "dn", "aniversario"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_DATE_OF_BIRTH",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilAgeRecognizer(PatternRecognizer):
+    """
+    Reconhece idade mencionada no texto
+    """
+    PATTERNS = [
+        Pattern(
+            name="age_anos",
+            regex=r"\b\d{1,3}\s+anos?\b",
+            score=0.75,
+        ),
+        Pattern(
+            name="age_with_word",
+            regex=r"\bcom\s+\d{1,3}\s+anos?\b",
+            score=0.80,
+        ),
+        Pattern(
+            name="age_atualmente",
+            regex=r"\batualmente\s+com\s+\d{1,3}\s+anos?\b",
+            score=0.85,
+        ),
+    ]
+
+    CONTEXT = ["idade", "anos", "atualmente", "tenho", "possui"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_AGE",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilProfessionRecognizer(PatternRecognizer):
+    """
+    Reconhece profissões comuns no contexto brasileiro
+    """
+    PROFESSIONS = [
+        "advogado", "advogada", "medico", "medica", "enfermeiro", "enfermeira",
+        "engenheiro", "engenheira", "professor", "professora", "arquiteto", "arquiteta",
+        "contador", "contadora", "administrador", "administradora", "dentista",
+        "psicologo", "psicologa", "nutricionista", "farmaceutico", "farmaceutica",
+        "veterinario", "veterinaria", "jornalista", "analista", "desenvolvedor",
+        "desenvolvedora", "programador", "programadora", "designer", "tecnico", "tecnica",
+        "gerente", "coordenador", "coordenadora", "diretor", "diretora", "supervisor",
+        "supervisora", "assistente", "auxiliar", "recepcionista", "secretario", "secretaria",
+        "motorista", "operador", "operadora", "consultor", "consultora", "vendedor",
+        "vendedora", "comerciante", "empresario", "empresaria", "autonomo", "autonoma"
+    ]
+    
+    PATTERNS = [
+        Pattern(
+            name="profession_pattern",
+            regex=r"\b(" + "|".join(PROFESSIONS) + r")\b",
+            score=0.70,
+        ),
+        Pattern(
+            name="profession_civil",
+            regex=r"\b(engenheiro|engenheira)\s+(civil|eletrico|eletrica|mecanico|mecanica|de\s+software|de\s+producao)\b",
+            score=0.85,
+        ),
+    ]
+
+    CONTEXT = ["profissao", "trabalho", "ocupacao", "cargo", "funcao", "atua como", "trabalha como", "sou"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_PROFESSION",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilMaritalStatusRecognizer(PatternRecognizer):
+    """
+    Reconhece estado civil
+    """
+    PATTERNS = [
+        Pattern(
+            name="marital_status",
+            regex=r"\b(solteiro|solteira|casado|casada|divorciado|divorciada|viuvo|viuva|separado|separada|uniao\s+estavel)\b",
+            score=0.75,
+        ),
+    ]
+
+    CONTEXT = ["estado civil", "civil", "conjugal"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_MARITAL_STATUS",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilNationalityRecognizer(PatternRecognizer):
+    """
+    Reconhece nacionalidade
+    """
+    PATTERNS = [
+        Pattern(
+            name="nationality_br",
+            regex=r"\b(brasileiro|brasileira|argentino|argentina|portugues|portuguesa|americano|americana|chileno|chilena|uruguaio|uruguaia|paraguaio|paraguaia)\b",
+            score=0.70,
+        ),
+    ]
+
+    CONTEXT = ["nacionalidade", "natural de", "nascido em", "nascida em", "pais de origem"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_NATIONALITY",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+# Dados financeiros
+
+class BrazilBankAccountRecognizer(PatternRecognizer):
+    """
+    Reconhece dados bancários (banco, agência, conta)
+    """
+    PATTERNS = [
+        Pattern(
+            name="bank_code",
+            regex=r"\b[Bb]anco\s+\d{3}\b",
+            score=0.90,
+        ),
+        Pattern(
+            name="agency_pattern",
+            regex=r"\b[Aa]g[êe]ncia\s+\d{3,5}\b",
+            score=0.90,
+        ),
+        Pattern(
+            name="account_pattern",
+            regex=r"\b[Cc]onta\s+(corrente\s+)?\d{4,12}-?\d{1}\b",
+            score=0.90,
+        ),
+    ]
+
+    CONTEXT = ["banco", "agencia", "conta", "bancario", "financeiro", "transferencia"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_BANK_ACCOUNT",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilContractNumberRecognizer(PatternRecognizer):
+    """
+    Reconhece números de contrato/protocolo
+    """
+    PATTERNS = [
+        Pattern(
+            name="contract_number",
+            regex=r"\b[Cc]ontrato\s+n[ºo°]?\s*\d{4,}-?[A-Z0-9-]+\b",
+            score=0.90,
+        ),
+        Pattern(
+            name="protocol_number",
+            regex=r"\b[Pp]rotocolo\s+(de\s+atendimento\s+)?\d{6,}\b",
+            score=0.90,
+        ),
+    ]
+
+    CONTEXT = ["contrato", "protocolo", "atendimento", "solicitacao", "numero"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_CONTRACT_NUMBER",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+# Dados de localização
+
+class BrazilVehiclePlateRecognizer(PatternRecognizer):
+    """
+    Reconhece placas de veículos brasileiros (Mercosul e antiga)
+    """
+    PATTERNS = [
+        Pattern(
+            name="plate_old_format",
+            regex=r"\b[A-Z]{3}-?\d[A-Z0-9]\d{2}\b",
+            score=0.85,
+        ),
+        Pattern(
+            name="plate_mercosul",
+            regex=r"\b[A-Z]{3}\d[A-Z]\d{2}\b",
+            score=0.85,
+        ),
+    ]
+
+    CONTEXT = ["placa", "veiculo", "carro", "automovel", "moto", "motocicleta"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_VEHICLE_PLATE",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilGeolocationRecognizer(PatternRecognizer):
+    """
+    Reconhece coordenadas geográficas (latitude/longitude)
+    """
+    PATTERNS = [
+        Pattern(
+            name="latitude_pattern",
+            regex=r"\b[Ll]atitude\s+-?\d{1,2}\.\d{2,10}\b",
+            score=0.95,
+        ),
+        Pattern(
+            name="longitude_pattern",
+            regex=r"\b[Ll]ongitude\s+-?\d{1,3}\.\d{2,10}\b",
+            score=0.95,
+        ),
+    ]
+
+    CONTEXT = ["latitude", "longitude", "coordenada", "localizacao", "gps", "geolocalização"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_GEOLOCATION",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilUsernameRecognizer(PatternRecognizer):
+    """
+    Reconhece nomes de usuário/login
+    """
+    PATTERNS = [
+        Pattern(
+            name="username_pattern",
+            regex=r"\b[Uu]su[aá]rio\s+(de\s+login\s+)?[\w\d._-]{3,20}\b",
+            score=0.85,
+        ),
+        Pattern(
+            name="login_pattern",
+            regex=r"\b[Ll]ogin\s+[\w\d._-]{3,20}\b",
+            score=0.85,
+        ),
+    ]
+
+    CONTEXT = ["usuario", "login", "acesso", "conta", "autenticacao"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_USERNAME",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilIpAddressRecognizer(PatternRecognizer):
+    """
+    Reconhece endereços IP mencionados explicitamente
+    """
+    PATTERNS = [
+        Pattern(
+            name="ip_pattern",
+            regex=r"\bIP\s+\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b",
+            score=0.95,
+        ),
+    ]
+
+    CONTEXT = ["ip", "endereco ip", "acesso", "conexao"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_IP_EXPLICIT",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+# Dados sensíveis LGPD
+
+class BrazilEthnicityRecognizer(PatternRecognizer):
+    """
+    Reconhece origem racial/étnica (dado sensível LGPD)
+    """
+    PATTERNS = [
+        Pattern(
+            name="ethnicity_pattern",
+            regex=r"\b(origem\s+[eé]tnica|etnia|ra[cç]a)\s+(branca|preta|parda|amarela|ind[ií]gena|negra)\b",
+            score=0.85,
+        ),
+        Pattern(
+            name="ethnicity_simple",
+            regex=r"\b(branco|branca|preto|preta|pardo|parda|negro|negra|amarelo|amarela|ind[ií]gena)\b",
+            score=0.65,
+        ),
+    ]
+
+    CONTEXT = ["origem etnica", "etnia", "raca", "cor", "negro", "branco", "pardo"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_ETHNICITY",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilReligionRecognizer(PatternRecognizer):
+    """
+    Reconhece convicção religiosa (dado sensível LGPD)
+    """
+    PATTERNS = [
+        Pattern(
+            name="religion_pattern",
+            regex=r"\b(religi[aã]o|cren[cç]a)\s+(cat[oó]lica|evang[eé]lica|protestante|esp[ií]rita|umbanda|candombl[eé]|judaica|mu[cç]ulmana|budista|ateu|ag?n[oó]stica?)\b",
+            score=0.85,
+        ),
+        Pattern(
+            name="religion_simple",
+            regex=r"\b(cat[oó]lic[oa]|evang[eé]lic[oa]|protestante|esp[ií]rita|judeu|judia|mu[cç]ulmano|mu[cç]ulmana|budista|ateu|ateia)\b",
+            score=0.60,
+        ),
+    ]
+
+    CONTEXT = ["religiao", "crenca", "fe", "igreja", "culto", "catolico", "evangelico"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_RELIGION",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilPoliticalOpinionRecognizer(PatternRecognizer):
+    """
+    Reconhece opinião política (dado sensível LGPD)
+    """
+    PATTERNS = [
+        Pattern(
+            name="political_opinion",
+            regex=r"\b(opini[aã]o\s+pol[ií]tica|orienta[cç][aã]o\s+pol[ií]tica)\s+(de\s+)?(esquerda|direita|centro|progressista|conservador[a]?|liberal)\b",
+            score=0.90,
+        ),
+        Pattern(
+            name="political_simple",
+            regex=r"\b(pol[ií]tica|politicamente)\s+(de\s+)?(esquerda|direita|centro|progressista|conservador[a]?|liberal)\b",
+            score=0.75,
+        ),
+    ]
+
+    CONTEXT = ["opiniao politica", "orientacao politica", "posicionamento", "partido", "ideologia"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_POLITICAL_OPINION",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilUnionMembershipRecognizer(PatternRecognizer):
+    """
+    Reconhece filiação sindical (dado sensível LGPD)
+    """
+    PATTERNS = [
+        Pattern(
+            name="union_membership",
+            regex=r"\b(filiado|filiada|membro|associado|associada)\s+(ao|do)\s+[Ss]indicato\s+[\w\s]{5,50}\b",
+            score=0.90,
+        ),
+        Pattern(
+            name="union_name",
+            regex=r"\b[Ss]indicato\s+(dos|das)\s+[\w\s]{5,50}\b",
+            score=0.80,
+        ),
+    ]
+
+    CONTEXT = ["sindicato", "filiacao", "sindical", "associacao", "categoria"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_UNION_MEMBERSHIP",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilHealthDataRecognizer(PatternRecognizer):
+    """
+    Reconhece dados de saúde (dado sensível LGPD)
+    """
+    HEALTH_CONDITIONS = [
+        "hipertens[aã]o", "diabetes", "c[aâ]ncer", "hepatite", "hiv", "aids",
+        "tuberculose", "asma", "bronquite", "pneumonia", "depress[aã]o",
+        "ansiedade", "esquizofrenia", "bipolar", "autismo", "alzheimer",
+        "parkinson", "epilepsia", "artrite", "osteoporose", "cirrose"
+    ]
+    
+    PATTERNS = [
+        Pattern(
+            name="health_condition",
+            regex=r"\b(hist[oó]rico|diagn[oó]stico|tratamento|doen[cç]a)\s+(de\s+)?(" + "|".join(HEALTH_CONDITIONS) + r")\b",
+            score=0.90,
+        ),
+        Pattern(
+            name="health_simple",
+            regex=r"\b(" + "|".join(HEALTH_CONDITIONS) + r")\b",
+            score=0.65,
+        ),
+        Pattern(
+            name="health_data_generic",
+            regex=r"\b(dados\s+de\s+sa[uú]de|hist[oó]rico\s+m[eé]dico|prontu[aá]rio)\b",
+            score=0.85,
+        ),
+    ]
+
+    CONTEXT = ["saude", "medico", "doenca", "tratamento", "diagnostico", "historico"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_HEALTH_DATA",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilSexualOrientationRecognizer(PatternRecognizer):
+    """
+    Reconhece orientação sexual (dado sensível LGPD)
+    """
+    PATTERNS = [
+        Pattern(
+            name="sexual_orientation",
+            regex=r"\b(orienta[cç][aã]o\s+sexual|vida\s+sexual)\b",
+            score=0.95,
+        ),
+        Pattern(
+            name="orientation_simple",
+            regex=r"\b(heterossexual|homossexual|bissexual|pansexual|assexual)\b",
+            score=0.70,
+        ),
+    ]
+
+    CONTEXT = ["orientacao sexual", "vida sexual", "sexualidade", "lgbtq"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_SEXUAL_ORIENTATION",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+

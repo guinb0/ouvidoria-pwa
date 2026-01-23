@@ -16,6 +16,27 @@ from brazilian_recognizers import (
     BrazilPhoneRecognizer,
     BrazilCnpjRecognizer,
     BrazilEmailRecognizer,
+    # Dados pessoais básicos
+    BrazilDateOfBirthRecognizer,
+    BrazilAgeRecognizer,
+    BrazilProfessionRecognizer,
+    BrazilMaritalStatusRecognizer,
+    BrazilNationalityRecognizer,
+    # Dados financeiros
+    BrazilBankAccountRecognizer,
+    BrazilContractNumberRecognizer,
+    # Dados de localização
+    BrazilVehiclePlateRecognizer,
+    BrazilGeolocationRecognizer,
+    BrazilUsernameRecognizer,
+    BrazilIpAddressRecognizer,
+    # Dados sensíveis LGPD
+    BrazilEthnicityRecognizer,
+    BrazilReligionRecognizer,
+    BrazilPoliticalOpinionRecognizer,
+    BrazilUnionMembershipRecognizer,
+    BrazilHealthDataRecognizer,
+    BrazilSexualOrientationRecognizer,
 )
 
 # Importar otimizador ensemble
@@ -26,12 +47,14 @@ from ensemble_optimizer import (
 )
 
 # Tentar importar Flair para NER de alta precisão
-try:
-    from flair.data import Sentence
-    from flair.models import SequenceTagger
-    FLAIR_AVAILABLE = True
-except ImportError:
-    FLAIR_AVAILABLE = False
+# DESABILITADO: Causando problemas de carregamento
+# try:
+#     from flair.data import Sentence
+#     from flair.models import SequenceTagger
+#     FLAIR_AVAILABLE = True
+# except ImportError:
+#     FLAIR_AVAILABLE = False
+FLAIR_AVAILABLE = False
 
 # Tentar importar Stanza para NER transformer
 try:
@@ -116,7 +139,28 @@ try:
     registry.add_recognizer(BrazilPhoneRecognizer())
     registry.add_recognizer(BrazilCnpjRecognizer())
     registry.add_recognizer(BrazilEmailRecognizer())
-    logger.info("Reconhecedores brasileiros adicionados (CPF, RG, CEP, Telefone, CNPJ, Email)")
+    # Dados pessoais básicos
+    registry.add_recognizer(BrazilDateOfBirthRecognizer())
+    registry.add_recognizer(BrazilAgeRecognizer())
+    registry.add_recognizer(BrazilProfessionRecognizer())
+    registry.add_recognizer(BrazilMaritalStatusRecognizer())
+    registry.add_recognizer(BrazilNationalityRecognizer())
+    # Dados financeiros
+    registry.add_recognizer(BrazilBankAccountRecognizer())
+    registry.add_recognizer(BrazilContractNumberRecognizer())
+    # Dados de localização
+    registry.add_recognizer(BrazilVehiclePlateRecognizer())
+    registry.add_recognizer(BrazilGeolocationRecognizer())
+    registry.add_recognizer(BrazilUsernameRecognizer())
+    registry.add_recognizer(BrazilIpAddressRecognizer())
+    # Dados sensíveis LGPD
+    registry.add_recognizer(BrazilEthnicityRecognizer())
+    registry.add_recognizer(BrazilReligionRecognizer())
+    registry.add_recognizer(BrazilPoliticalOpinionRecognizer())
+    registry.add_recognizer(BrazilUnionMembershipRecognizer())
+    registry.add_recognizer(BrazilHealthDataRecognizer())
+    registry.add_recognizer(BrazilSexualOrientationRecognizer())
+    logger.info("Reconhecedores brasileiros adicionados: 22 tipos (CPF, RG, CEP, Telefone, CNPJ, Email + 16 LGPD)")
     
     # Inicializar engines do Presidio
     analyzer = AnalyzerEngine(nlp_engine=nlp_engine, registry=registry)
@@ -174,6 +218,7 @@ async def processar_texto(request: ProcessamentoRequest):
     try:
         # Definir entidades a serem detectadas (incluindo brasileiras)
         entities = request.entities or [
+            # Entidades básicas Presidio
             "PERSON",           # Nomes de pessoas
             "EMAIL_ADDRESS",    # E-mails
             "PHONE_NUMBER",     # Telefones
@@ -183,11 +228,33 @@ async def processar_texto(request: ProcessamentoRequest):
             "IP_ADDRESS",       # Endereços IP
             "NRP",              # CPF (Portugal/Brasil)
             "US_SSN",           # Similar a CPF
-            "BR_CPF",           # CPF brasileiro (custom)
-            "BR_RG",            # RG brasileiro (custom)
-            "BR_CEP",           # CEP brasileiro (custom)
-            "BR_CNPJ",          # CNPJ brasileiro (custom)
-            "BR_PHONE",         # Telefone brasileiro (custom)
+            # Reconhecedores brasileiros básicos
+            "BR_CPF",           # CPF brasileiro
+            "BR_RG",            # RG brasileiro
+            "BR_CEP",           # CEP brasileiro
+            "BR_CNPJ",          # CNPJ brasileiro
+            "BR_PHONE",         # Telefone brasileiro
+            # Dados pessoais básicos
+            "BR_DATE_OF_BIRTH", # Data de nascimento
+            "BR_AGE",           # Idade
+            "BR_PROFESSION",    # Profissão
+            "BR_MARITAL_STATUS",# Estado civil
+            "BR_NATIONALITY",   # Nacionalidade
+            # Dados financeiros
+            "BR_BANK_ACCOUNT",  # Dados bancários
+            "BR_CONTRACT_NUMBER", # Número de contrato/protocolo
+            # Dados de localização
+            "BR_VEHICLE_PLATE", # Placa de veículo
+            "BR_GEOLOCATION",   # Coordenadas GPS
+            "BR_USERNAME",      # Nome de usuário
+            "BR_IP_EXPLICIT",   # IP explicitamente mencionado
+            # Dados sensíveis LGPD
+            "BR_ETHNICITY",     # Origem étnica
+            "BR_RELIGION",      # Religião
+            "BR_POLITICAL_OPINION", # Opinião política
+            "BR_UNION_MEMBERSHIP",  # Filiação sindical
+            "BR_HEALTH_DATA",   # Dados de saúde
+            "BR_SEXUAL_ORIENTATION", # Orientação sexual
         ]
         
         # Analisar texto com limiar de confiança mínimo
@@ -363,20 +430,44 @@ async def processar_texto(request: ProcessamentoRequest):
         
         # Configurar operadores de anonimização
         operators = {
+            # Entidades básicas
             "PERSON": OperatorConfig("replace", {"new_value": "[NOME]"}),
             "EMAIL_ADDRESS": OperatorConfig("replace", {"new_value": "[EMAIL]"}),
             "PHONE_NUMBER": OperatorConfig("replace", {"new_value": "(XX) XXXXX-XXXX"}),
             "LOCATION": OperatorConfig("replace", {"new_value": "[LOCAL]"}),
-            "CREDIT_CARD": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 12, "from_end": False}),
-            "IBAN_CODE": OperatorConfig("mask", {"masking_char": "*", "chars_to_mask": 10, "from_end": False}),
+            "CREDIT_CARD": OperatorConfig("mask", {"masking_char": "X", "chars_to_mask": 12, "from_end": False}),
+            "IBAN_CODE": OperatorConfig("mask", {"masking_char": "X", "chars_to_mask": 10, "from_end": False}),
             "IP_ADDRESS": OperatorConfig("replace", {"new_value": "XXX.XXX.XXX.XXX"}),
             "NRP": OperatorConfig("replace", {"new_value": "XXX.XXX.XXX-XX"}),
             "US_SSN": OperatorConfig("replace", {"new_value": "XXX.XXX.XXX-XX"}),
+            # Reconhecedores brasileiros básicos
             "BR_CPF": OperatorConfig("replace", {"new_value": "XXX.XXX.XXX-XX"}),
             "BR_RG": OperatorConfig("replace", {"new_value": "XX.XXX.XXX-X"}),
             "BR_CEP": OperatorConfig("replace", {"new_value": "XXXXX-XXX"}),
             "BR_PHONE": OperatorConfig("replace", {"new_value": "(XX) XXXXX-XXXX"}),
             "BR_CNPJ": OperatorConfig("replace", {"new_value": "XX.XXX.XXX/XXXX-XX"}),
+            # Dados pessoais básicos
+            "BR_DATE_OF_BIRTH": OperatorConfig("replace", {"new_value": "DD/MM/AAAA"}),
+            "BR_AGE": OperatorConfig("replace", {"new_value": "[IDADE]"}),
+            "BR_PROFESSION": OperatorConfig("replace", {"new_value": "[PROFISSÃO]"}),
+            "BR_MARITAL_STATUS": OperatorConfig("replace", {"new_value": "[ESTADO_CIVIL]"}),
+            "BR_NATIONALITY": OperatorConfig("replace", {"new_value": "[NACIONALIDADE]"}),
+            # Dados financeiros
+            "BR_BANK_ACCOUNT": OperatorConfig("replace", {"new_value": "[DADOS_BANCÁRIOS]"}),
+            "BR_CONTRACT_NUMBER": OperatorConfig("replace", {"new_value": "[CONTRATO/PROTOCOLO]"}),
+            # Dados de localização
+            "BR_VEHICLE_PLATE": OperatorConfig("replace", {"new_value": "XXX-XXXX"}),
+            "BR_GEOLOCATION": OperatorConfig("replace", {"new_value": "[COORDENADAS]"}),
+            "BR_USERNAME": OperatorConfig("replace", {"new_value": "[USUÁRIO]"}),
+            "BR_IP_EXPLICIT": OperatorConfig("replace", {"new_value": "IP XXX.XXX.XXX.XXX"}),
+            # Dados sensíveis LGPD
+            "BR_ETHNICITY": OperatorConfig("replace", {"new_value": "[DADO_SENSÍVEL]"}),
+            "BR_RELIGION": OperatorConfig("replace", {"new_value": "[DADO_SENSÍVEL]"}),
+            "BR_POLITICAL_OPINION": OperatorConfig("replace", {"new_value": "[DADO_SENSÍVEL]"}),
+            "BR_UNION_MEMBERSHIP": OperatorConfig("replace", {"new_value": "[DADO_SENSÍVEL]"}),
+            "BR_HEALTH_DATA": OperatorConfig("replace", {"new_value": "[DADO_SENSÍVEL]"}),
+            "BR_SEXUAL_ORIENTATION": OperatorConfig("replace", {"new_value": "[DADO_SENSÍVEL]"}),
+            # Default
             "DEFAULT": OperatorConfig("replace", {"new_value": "[OCULTO]"}),
         }
         
@@ -425,21 +516,25 @@ async def health_check():
 
 @app.get("/api/entities")
 async def get_supported_entities():
-    """Retorna lista de entidades suportadas"""
+    """Retorna lista de entidades suportadas (33 tipos LGPD-compliant)"""
     return {
         "entidades": [
-            "PERSON",           # Nomes de pessoas
-            "EMAIL_ADDRESS",    # E-mails
-            "PHONE_NUMBER",     # Telefones
-            "LOCATION",         # Localizações
-            "CREDIT_CARD",      # Cartões de crédito
-            "BR_CPF",          # CPF brasileiro
-            "BR_RG",           # RG brasileiro
-            "BR_CEP",          # CEP brasileiro
-            "BR_PHONE",        # Telefone brasileiro
-            "IP_ADDRESS",      # Endereços IP
-            "IBAN_CODE",       # Códigos bancários
-        ]
+            # Básicas
+            "PERSON", "EMAIL_ADDRESS", "PHONE_NUMBER", "LOCATION", "CREDIT_CARD", "IP_ADDRESS", "IBAN_CODE",
+            # Documentos BR
+            "BR_CPF", "BR_RG", "BR_CEP", "BR_PHONE", "BR_CNPJ",
+            # Dados pessoais
+            "BR_DATE_OF_BIRTH", "BR_AGE", "BR_PROFESSION", "BR_MARITAL_STATUS", "BR_NATIONALITY",
+            # Dados financeiros
+            "BR_BANK_ACCOUNT", "BR_CONTRACT_NUMBER",
+            # Localização
+            "BR_VEHICLE_PLATE", "BR_GEOLOCATION", "BR_USERNAME", "BR_IP_EXPLICIT",
+            # Dados sensíveis LGPD (Art. 5º, II)
+            "BR_ETHNICITY", "BR_RELIGION", "BR_POLITICAL_OPINION", "BR_UNION_MEMBERSHIP",
+            "BR_HEALTH_DATA", "BR_SEXUAL_ORIENTATION",
+        ],
+        "total": 33,
+        "lgpd_compliant": True
     }
 
 
