@@ -1,0 +1,403 @@
+{
+  "metricas": {
+    "total_ground_truth": 88,
+    "total_detectado": 478,
+    "verdadeiros_positivos": 76,
+    "falsos_negativos": 12,
+    "falsos_positivos": 45,
+    "precisao": "15.90%",
+    "recall": "86.36%",
+    "f1_score": "26.86%"
+  },
+  "falsos_negativos": [
+    {
+      "id": 23,
+      "tipo": "Nome Completo",
+      "valor": "Site Google Maps",
+      "contexto": "grafias de anos anteriores retiradas do Site Google Maps. Pelos fatos anteriormente narrados, so"
+    },
+    {
+      "id": 29,
+      "tipo": "Telefone",
+      "valor": "20230414002",
+      "contexto": "to ocorrência atendida pelo CBMDF de nº 2023041400200259. Solicito informação a respeito da"
+    },
+    {
+      "id": 35,
+      "tipo": "Telefone",
+      "valor": "20218527419",
+      "contexto": "ito ocorrência atendida pelo PMDF de nº 2021852741963258."
+    },
+    {
+      "id": 42,
+      "tipo": "Telefone",
+      "valor": "20192587413",
+      "contexto": "ito ocorrência atendida pelo PMDF de nº 2019258741369456. Olá, boa tarde, me mudei recentem"
+    },
+    {
+      "id": 51,
+      "tipo": "Telefone",
+      "valor": "0032185265",
+      "contexto": "Solicita-se acesso ao Processo nº 0032185265/2024. Inteligência Artificial e Letrame"
+    },
+    {
+      "id": 61,
+      "tipo": "Telefone",
+      "valor": "7893214568",
+      "contexto": "ncia nota explicativa 1. corrigir nire: 7893214568-7 89- prezado senhor usuário, orientamo"
+    },
+    {
+      "id": 77,
+      "tipo": "Telefone",
+      "valor": "00036897120",
+      "contexto": "to de solicitar o acesso ao processo nº 0003689712003/2025-06, pelo portal SEI. Atenciosame"
+    },
+    {
+      "id": 79,
+      "tipo": "Telefone",
+      "valor": "22045687001",
+      "contexto": "Solicito cópia de ocorrência nº 2204568700193025"
+    },
+    {
+      "id": 83,
+      "tipo": "Telefone",
+      "valor": "1000258954",
+      "contexto": "lativas às Certidões de Dívida Ativa nº 1000258954 e 0002574863. Agradeço a disponibilidad"
+    },
+    {
+      "id": 83,
+      "tipo": "Telefone",
+      "valor": "0002574863",
+      "contexto": "rtidões de Dívida Ativa nº 1000258954 e 0002574863. Agradeço a disponibilidade e aguardo o"
+    },
+    {
+      "id": 12345678908,
+      "tipo": "Telefone",
+      "valor": "32165498732",
+      "contexto": "ruz CNH: 78945612378 Título de eleitor: 321654987321 (zona 01, seção 123) CTPS: 65421 - Sér"
+    },
+    {
+      "id": 56,
+      "tipo": "Nome Completo",
+      "valor": "Contoladoria Geral Assunto",
+      "contexto": "89 E-mail: feito10@press.so Secretaria: Contoladoria Geral Assunto: ASSÉDIO Data Pedido: 31/11/2012 Bairro"
+    }
+  ],
+  "falsos_positivos": [
+    {
+      "id": 5,
+      "tipo": "PERSON",
+      "valor": "Cidadã",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 5,
+      "tipo": "PERSON",
+      "valor": "Venho",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 5,
+      "tipo": "PERSON",
+      "valor": "Caesb",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 800,
+      "tipo": "PERSON",
+      "valor": "Caesb",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 10,
+      "tipo": "PERSON",
+      "valor": "Encaminho",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 10,
+      "tipo": "PERSON",
+      "valor": "Certidão",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 10,
+      "tipo": "PERSON",
+      "valor": "Ônus",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 11,
+      "tipo": "PERSON",
+      "valor": "Integridade",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 11,
+      "tipo": "PERSON",
+      "valor": "Integridade",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 11,
+      "tipo": "PERSON",
+      "valor": "Integridade",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 18,
+      "tipo": "PERSON",
+      "valor": "Gostariabde",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 21,
+      "tipo": "PERSON",
+      "valor": "Dispor",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 21,
+      "tipo": "PERSON",
+      "valor": "Dispor",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 23,
+      "tipo": "PERSON",
+      "valor": "Documento",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 23,
+      "tipo": "PERSON",
+      "valor": "Agradeço",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 36,
+      "tipo": "PERSON",
+      "valor": "LAI-258789/2025",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 38,
+      "tipo": "PERSON",
+      "valor": "Termo",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 42,
+      "tipo": "PERSON",
+      "valor": "Olá",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 42,
+      "tipo": "PERSON",
+      "valor": "Olá",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 42,
+      "tipo": "PERSON",
+      "valor": "Márcio",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 47,
+      "tipo": "PERSON",
+      "valor": "Boa",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 47,
+      "tipo": "PERSON",
+      "valor": "Juvenil",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 47,
+      "tipo": "PERSON",
+      "valor": "Gustavo",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 49,
+      "tipo": "PERSON",
+      "valor": "Departamento",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 51,
+      "tipo": "PERSON",
+      "valor": "Profissional",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 51,
+      "tipo": "PERSON",
+      "valor": "Contamos",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 53,
+      "tipo": "PERSON",
+      "valor": "Identidade",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 53,
+      "tipo": "PERSON",
+      "valor": "à(s",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 54,
+      "tipo": "PERSON",
+      "valor": "Convênio",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 54,
+      "tipo": "PERSON",
+      "valor": "Informar",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 55,
+      "tipo": "PERSON",
+      "valor": "Casei",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 64,
+      "tipo": "PERSON",
+      "valor": "Certidão",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 68,
+      "tipo": "PERSON",
+      "valor": "Peço",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 73,
+      "tipo": "PERSON",
+      "valor": "Favor",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 73,
+      "tipo": "PERSON",
+      "valor": "Favor",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 81,
+      "tipo": "PERSON",
+      "valor": "Moro",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 83,
+      "tipo": "PERSON",
+      "valor": "Agradeço",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 87,
+      "tipo": "PERSON",
+      "valor": "Olá",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 89,
+      "tipo": "PERSON",
+      "valor": "Thiago",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 11,
+      "tipo": "PERSON",
+      "valor": "Integridade",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 11,
+      "tipo": "PERSON",
+      "valor": "Integridade",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 11,
+      "tipo": "PERSON",
+      "valor": "Integridade",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 96,
+      "tipo": "PERSON",
+      "valor": "Venho",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 96,
+      "tipo": "PERSON",
+      "valor": "Sou",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    },
+    {
+      "id": 97,
+      "tipo": "PERSON",
+      "valor": "Aluna",
+      "score": 0.85,
+      "motivo": "Nome incompleto/palavra solta"
+    }
+  ]
+}

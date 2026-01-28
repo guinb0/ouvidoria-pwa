@@ -7,6 +7,13 @@ from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
 from typing import List, Dict, Any
 import logging
+import re
+
+# Importar validadores robustos
+from validators import PersonLocationFilter
+
+# Pré-processador temporariamente desabilitado - focando em Flair para recall
+# from text_preprocessor import TextPreprocessor
 
 # Importar reconhecedores brasileiros customizados
 from brazilian_recognizers import (
@@ -37,6 +44,22 @@ from brazilian_recognizers import (
     BrazilUnionMembershipRecognizer,
     BrazilHealthDataRecognizer,
     BrazilSexualOrientationRecognizer,
+    # Reconhecedores auxiliares
+    BrazilGenericPhoneRecognizer,
+    BrazilNameRecognizer,
+    # Documentos adicionais
+    BrazilVoterIdRecognizer,
+    BrazilWorkCardRecognizer,
+    BrazilDriverLicenseRecognizer,
+    BrazilPisPasepRecognizer,
+    BrazilCnsRecognizer,
+    BrazilPassportRecognizer,
+    BrazilReservistaRecognizer,
+    BrazilProfessionalRegistryRecognizer,
+    BrazilPixKeyRecognizer,
+    BrazilRenavamRecognizer,
+    BrazilSchoolRegistrationRecognizer,
+    BrazilBenefitNumberRecognizer,
 )
 
 # Importar otimizador ensemble
@@ -47,14 +70,12 @@ from ensemble_optimizer import (
 )
 
 # Tentar importar Flair para NER de alta precisão
-# DESABILITADO: Causando problemas de carregamento
-# try:
-#     from flair.data import Sentence
-#     from flair.models import SequenceTagger
-#     FLAIR_AVAILABLE = True
-# except ImportError:
-#     FLAIR_AVAILABLE = False
-FLAIR_AVAILABLE = False
+try:
+    from flair.data import Sentence
+    from flair.models import SequenceTagger
+    FLAIR_AVAILABLE = True
+except ImportError:
+    FLAIR_AVAILABLE = False
 
 # Tentar importar Stanza para NER transformer
 try:
@@ -64,7 +85,7 @@ except ImportError:
     STANZA_AVAILABLE = False
 
 # Configurar logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 if FLAIR_AVAILABLE:
@@ -91,36 +112,31 @@ app.add_middleware(
 # Inicializar Presidio
 configuration = {
     "nlp_engine_name": "spacy",
-    "models": [{"lang_code": "pt", "model_name": "pt_core_news_sm"}],
+    "models": [{"lang_code": "pt", "model_name": "pt_core_news_lg"}],
 }
 
-# Tentar carregar stanza como alternativa (DESABILITADO - muito lento)
+# Tentar carregar Stanza transformer NER  
+# DESABILITADO: modelo não descompacta corretamente
 stanza_nlp = None
 # if STANZA_AVAILABLE:
 #     try:
-#         logger.info("Baixando modelo Stanza portugues (pode demorar na primeira vez)...")
+#         logger.info("Baixando modelo Stanza português (primeira vez pode demorar)...")
 #         stanza.download('pt', logging_level='ERROR')
 #         stanza_nlp = stanza.Pipeline('pt', processors='tokenize,ner', logging_level='ERROR')
-#         logger.info("Modelo Stanza carregado com sucesso (transformer NER)")
+#         logger.info("✅ Stanza transformer NER português carregado - máxima precisão!")
 #     except Exception as e:
-#         logger.warning(f"Falha ao carregar Stanza: {e}")
+#         logger.warning(f"❌ Falha ao carregar Stanza: {e}")
 #         stanza_nlp = None
 
 # Inicializar Flair se disponível
 flair_tagger = None
 if FLAIR_AVAILABLE:
     try:
-        logger.info("Baixando modelo Flair portugues large (pode demorar na primeira vez)...")
-        # Carregar modelo português específico (melhor que multilíngue para PT-BR)
-        try:
-            flair_tagger = SequenceTagger.load('flair/ner-portuguese-large')
-            logger.info("Modelo Flair português large carregado com sucesso")
-        except Exception:
-            # Fallback para multilíngue se português não disponível
-            flair_tagger = SequenceTagger.load('ner-multi')
-            logger.info("Modelo Flair multilingue carregado (fallback)")
+        logger.info("Carregando modelo Flair NER multilingue (suporta português)...")
+        flair_tagger = SequenceTagger.load('ner-multi')
+        logger.info("✅ Flair NER multilingue carregado - melhora recall de PERSON/LOCATION")
     except Exception as e:
-        logger.warning(f"Falha ao carregar modelo Flair: {e}")
+        logger.warning(f"❌ Falha ao carregar Flair: {e}")
         flair_tagger = None
 
 # Inicializar Presidio com spaCy e reconhecedores customizados
@@ -137,6 +153,7 @@ try:
     registry.add_recognizer(BrazilRgRecognizer())
     registry.add_recognizer(BrazilCepRecognizer())
     registry.add_recognizer(BrazilPhoneRecognizer())
+    registry.add_recognizer(BrazilGenericPhoneRecognizer())  # Telefones genéricos
     registry.add_recognizer(BrazilCnpjRecognizer())
     registry.add_recognizer(BrazilEmailRecognizer())
     # Dados pessoais básicos
@@ -160,11 +177,32 @@ try:
     registry.add_recognizer(BrazilUnionMembershipRecognizer())
     registry.add_recognizer(BrazilHealthDataRecognizer())
     registry.add_recognizer(BrazilSexualOrientationRecognizer())
-    logger.info("Reconhecedores brasileiros adicionados: 22 tipos (CPF, RG, CEP, Telefone, CNPJ, Email + 16 LGPD)")
+    registry.add_recognizer(BrazilNameRecognizer())  # Nomes brasileiros
+    registry.add_recognizer(BrazilVoterIdRecognizer())  # Título de Eleitor
+    registry.add_recognizer(BrazilWorkCardRecognizer())  # CTPS
+    registry.add_recognizer(BrazilDriverLicenseRecognizer())  # CNH
+    registry.add_recognizer(BrazilPisPasepRecognizer())  # PIS/PASEP
+    registry.add_recognizer(BrazilCnsRecognizer())  # CNS (Cartão Nacional de Saúde)
+    registry.add_recognizer(BrazilPassportRecognizer())  # Passaporte
+    registry.add_recognizer(BrazilReservistaRecognizer())  # Certificado de Reservista
+    registry.add_recognizer(BrazilProfessionalRegistryRecognizer())  # Registros profissionais
+    registry.add_recognizer(BrazilPixKeyRecognizer())  # Chave PIX
+    registry.add_recognizer(BrazilRenavamRecognizer())  # RENAVAM
+    registry.add_recognizer(BrazilSchoolRegistrationRecognizer())  # Matrícula escolar
+    registry.add_recognizer(BrazilBenefitNumberRecognizer())  # Número de benefício
+    logger.info("Reconhecedores brasileiros adicionados: 37 tipos (CPF, RG, CEP, Telefone, CNPJ, Email + 31 incluindo Título Eleitor, CTPS, CNH, PIS, CNS, Passaporte, Reservista, Registros Profissionais, PIX, RENAVAM, Matrícula Escolar, Número Benefício)")
     
     # Inicializar engines do Presidio
     analyzer = AnalyzerEngine(nlp_engine=nlp_engine, registry=registry)
     anonymizer = AnonymizerEngine()
+    
+    # Inicializar filtro robusto de PERSON/LOCATION
+    person_location_filter = PersonLocationFilter()
+    logger.info("Filtro robusto Person/Location inicializado com NameDataset + Geopy")
+    
+    # Pré-processador desabilitado temporariamente
+    # text_preprocessor = TextPreprocessor()
+    # logger.info("Pré-processador de texto inicializado - normalização de quebras e contexto")
     
     if flair_tagger:
         logger.info("Presidio inicializado com spaCy portugues (lg) + Flair + Reconhecedores BR")
@@ -189,12 +227,104 @@ except Exception as e:
         registry.add_recognizer(BrazilEmailRecognizer())
         analyzer = AnalyzerEngine(nlp_engine=nlp_engine, registry=registry)
         anonymizer = AnonymizerEngine()
-        logger.info("Presidio inicializado com spaCy portugues (sm) + Reconhecedores BR")
+        person_location_filter = PersonLocationFilter()
+        logger.info("Presidio inicializado com spaCy portugues (sm) + Reconhecedores BR + Validadores Robustos")
     except Exception as e2:
         logger.warning(f"Falha ao carregar modelo portugues sm: {e2}")
         logger.info("Inicializando com modelo ingles como fallback")
         analyzer = AnalyzerEngine()
         anonymizer = AnonymizerEngine()
+        person_location_filter = PersonLocationFilter()
+        logger.info("Filtro robusto inicializado mesmo no fallback")
+
+
+def aplicar_ner_complementar(texto: str, results_spacy: List):
+    """
+    Aplica Flair e Stanza para detectar entidades adicionais não capturadas pelo spaCy
+    """
+    from presidio_analyzer import RecognizerResult
+    
+    resultados_extras = []
+    
+    # Aplicar Flair NER
+    if flair_tagger:
+        try:
+            sentence = Sentence(texto)
+            flair_tagger.predict(sentence)
+            
+            for entity in sentence.get_spans('ner'):
+                # Mapear tags do Flair para Presidio
+                flair_type = entity.tag
+                presidio_type = None
+                
+                if flair_type in ['PER', 'B-PER', 'I-PER', 'E-PER', 'S-PER']:
+                    presidio_type = 'PERSON'
+                elif flair_type in ['LOC', 'B-LOC', 'I-LOC', 'E-LOC', 'S-LOC']:
+                    presidio_type = 'LOCATION'
+                elif flair_type in ['ORG', 'B-ORG', 'I-ORG', 'E-ORG', 'S-ORG']:
+                    presidio_type = 'PERSON'  # Tratamos ORG como PERSON para validação posterior
+                
+                if presidio_type:
+                    # Verificar se já foi detectado pelo spaCy
+                    start_pos = entity.start_position
+                    end_pos = entity.end_position
+                    
+                    ja_existe = any(
+                        r.start == start_pos and r.end == end_pos 
+                        for r in results_spacy
+                    )
+                    
+                    if not ja_existe:
+                        resultados_extras.append(RecognizerResult(
+                            entity_type=presidio_type,
+                            start=start_pos,
+                            end=end_pos,
+                            score=entity.score
+                        ))
+                        logger.debug(f"✨ Flair detectou: '{texto[start_pos:end_pos]}' ({presidio_type})")
+        except Exception as e:
+            logger.warning(f"Erro ao aplicar Flair: {e}")
+    
+    # Aplicar Stanza NER
+    if stanza_nlp:
+        try:
+            doc = stanza_nlp(texto)
+            
+            for ent in doc.entities:
+                # Mapear tags do Stanza para Presidio
+                stanza_type = ent.type
+                presidio_type = None
+                
+                if stanza_type == 'PER':
+                    presidio_type = 'PERSON'
+                elif stanza_type == 'LOC':
+                    presidio_type = 'LOCATION'
+                elif stanza_type == 'ORG':
+                    presidio_type = 'PERSON'  # Tratamos ORG como PERSON
+                
+                if presidio_type:
+                    # Encontrar posições no texto original
+                    start_pos = ent.start_char
+                    end_pos = ent.end_char
+                    
+                    # Verificar se já foi detectado
+                    ja_existe = any(
+                        r.start == start_pos and r.end == end_pos 
+                        for r in results_spacy + resultados_extras
+                    )
+                    
+                    if not ja_existe:
+                        resultados_extras.append(RecognizerResult(
+                            entity_type=presidio_type,
+                            start=start_pos,
+                            end=end_pos,
+                            score=0.85  # Stanza geralmente tem alta precisão
+                        ))
+                        logger.debug(f"🌟 Stanza detectou: '{texto[start_pos:end_pos]}' ({presidio_type})")
+        except Exception as e:
+            logger.warning(f"Erro ao aplicar Stanza: {e}")
+    
+    return resultados_extras
 
 
 class ProcessamentoRequest(BaseModel):
@@ -255,6 +385,19 @@ async def processar_texto(request: ProcessamentoRequest):
             "BR_UNION_MEMBERSHIP",  # Filiação sindical
             "BR_HEALTH_DATA",   # Dados de saúde
             "BR_SEXUAL_ORIENTATION", # Orientação sexual
+            # Documentos adicionais
+            "BR_VOTER_ID",      # Título de Eleitor
+            "BR_WORK_CARD",     # CTPS (Carteira de Trabalho)
+            "BR_DRIVER_LICENSE", # CNH
+            "BR_PIS_PASEP",     # PIS/PASEP
+            "BR_CNS",           # CNS (Cartão Nacional de Saúde)
+            "BR_PASSPORT",      # Passaporte
+            "BR_RESERVISTA",    # Certificado de Reservista
+            "BR_PROFESSIONAL_REGISTRY", # Registros profissionais (OAB, CRM, CREA, etc)
+            "BR_PIX_KEY",       # Chave PIX
+            "BR_RENAVAM",       # RENAVAM
+            "BR_SCHOOL_REGISTRATION", # Matrícula escolar
+            "BR_BENEFIT_NUMBER", # Número de benefício (INSS, etc)
         ]
         
         # Analisar texto com limiar de confiança mínimo
@@ -262,8 +405,17 @@ async def processar_texto(request: ProcessamentoRequest):
             text=request.texto,
             language=request.language,
             entities=entities,
-            score_threshold=0.50  # Threshold base (será refinado se necessário)
+            score_threshold=0.40  # Threshold reduzido para capturar mais (filtros específicos aplicados depois)
         )
+        
+        # Aplicar NER complementar (Flair + Stanza)
+        logger.debug(f"spaCy detectou {len(results)} entidades")
+        resultados_extras = aplicar_ner_complementar(request.texto, results)
+        logger.debug(f"Flair+Stanza adicionaram {len(resultados_extras)} entidades extras")
+        
+        # Combinar resultados
+        results = results + resultados_extras
+        logger.info(f"Total após ensemble: {len(results)} entidades")
         
         # DESABILITADO: Ensemble optimizer estava reduzindo recall
         # threshold_optimizer = ThresholdOptimizer()
@@ -287,7 +439,7 @@ async def processar_texto(request: ProcessamentoRequest):
         # 
         # results = optimized_results
         
-        # Filtrar PERSON com score baixo e verificar se não é apenas uma palavra
+        # Filtrar PERSON e LOCATION usando validadores robustos
         filtered_results = []
         
         # Criar índice de spans para detectar sobreposições
@@ -298,114 +450,54 @@ async def processar_texto(request: ProcessamentoRequest):
                 entity_spans[key] = []
             entity_spans[key].append(r)
         
-        # LEXICONS CUSTOMIZADOS (Técnica Reddit: +2-4% F1)
-        # Palavras que não devem ser detectadas como PERSON
-        person_blacklist = [
-            # Documentos e processos
-            "documento", "protocolo", "email", "cpf", "rg", "cnpj", "cep", 
-            "processo", "lei", "artigo", "inciso", "paragrafo", "decreto",
-            # Termos jurídicos
-            "sentenca", "acordao", "decisao", "despacho", "parecer",
-            "recurso", "agravo", "apelacao", "embargos",
-            # Órgãos e cargos genéricos
-            "secretaria", "ministerio", "tribunal", "conselho", "comissao",
-            "presidente", "ministro", "juiz", "desembargador", "procurador",
-            # Conectivos e preposições comuns
-            "sobre", "para", "com", "sem", "por", "sob", "ante"
-        ]
-        
-        # Palavras que não devem ser detectadas como LOCATION
-        location_blacklist = [
-            # Comunicação e documentos
-            "fixo", "celular", "email", "tel", "fone", "telefone", "documento", "protocolo",
-            # Termos técnicos
-            "sistema", "portal", "plataforma", "aplicativo", "site",
-            # Status e estados
-            "aberto", "fechado", "pendente", "concluido", "em andamento"
-        ]
-        
-        # Contextos governamentais brasileiros (não são PII)
-        gov_context_blacklist = [
-            "processo", "protocolo", "artigo", "lei", "decreto", "portaria", 
-            "resolucao", "instrucao normativa", "parecer", "despacho",
-            "edital", "licitacao", "contrato", "convenio", "termo",
-            "oficio", "memorando", "comunicacao", "nota tecnica"
-        ]
-        
-        # Padrões de nomes brasileiros válidos (para melhorar precisão)
-        # Se tem sobrenome comum brasileiro e mais de 1 palavra, aumentar confiança
-        sobrenomes_brasileiros = [
-            "silva", "santos", "oliveira", "souza", "rodrigues", "ferreira", 
-            "alves", "pereira", "lima", "gomes", "costa", "ribeiro", "martins",
-            "carvalho", "rocha", "almeida", "nascimento", "araujo", "melo", "barbosa"
-        ]
-        
         for r in results:
             skip = False
             
-            # Para PERSON
+            # Para PERSON - usar validador robusto
             if r.entity_type == "PERSON":
-                texto_detectado = request.texto[r.start:r.end].lower()
                 texto_original = request.texto[r.start:r.end]
-                palavras = texto_detectado.split()
+                logger.debug(f"🔍 spaCy detectou PERSON: '{texto_original}' (score: {r.score:.2f})")
                 
-                # Verificar blacklist (exact match ou substring)
-                if any(palavra == texto_detectado for palavra in person_blacklist):
-                    skip = True
-                elif any(black in texto_detectado for black in ["@", "protocolo", "processo"]):
-                    skip = True
+                # Extrair contexto ao redor
+                context_window = 50
+                start_ctx = max(0, r.start - context_window)
+                end_ctx = min(len(request.texto), r.end + context_window)
+                context = request.texto[start_ctx:end_ctx]
                 
-                # Se sobrepõe com EMAIL_ADDRESS, priorizar EMAIL
-                span_key = (r.start, r.end)
-                if span_key in entity_spans:
-                    for other in entity_spans[span_key]:
-                        if other.entity_type == "EMAIL_ADDRESS":
-                            skip = True
-                            break
+                # Usar validador robusto com NameDataset
+                is_valid = person_location_filter.should_keep_as_person(texto_original, context, r.score)
+                logger.debug(f"✅ PERSON '{texto_original}' - Validador: {is_valid} (score: {r.score:.2f})")
                 
-                # Boost: Se tem sobrenome brasileiro comum, reduzir threshold
-                has_brazilian_surname = any(sobrenome in palavras for sobrenome in sobrenomes_brasileiros)
-                min_score = 0.70 if has_brazilian_surname else 0.75
-                
-                # Verificar se é um nome válido (pelo menos 2 palavras ou tem ponto)
-                if not skip:
-                    has_space = " " in texto_original
-                    has_dot = "." in texto_original and len(palavras) >= 2
+                if is_valid:
+                    # Validar sobreposição com outros tipos
+                    span_key = (r.start, r.end)
+                    if span_key in entity_spans:
+                        for other in entity_spans[span_key]:
+                            if other.entity_type == "EMAIL_ADDRESS":
+                                skip = True
+                                break
                     
-                    if (has_space or has_dot) and r.score >= min_score:
+                    if not skip:
                         filtered_results.append(r)
+                # else: rejeitar (validador retornou False)
                     
-            # Para LOCATION
+            # Para LOCATION - usar validador robusto
             elif r.entity_type == "LOCATION":
-                texto_detectado = request.texto[r.start:r.end].lower()
                 texto_original = request.texto[r.start:r.end]
                 
-                # Verificar blacklist (exact match)
-                if texto_detectado in location_blacklist:
-                    skip = True
+                # Extrair contexto ao redor
+                context_window = 50
+                start_ctx = max(0, r.start - context_window)
+                end_ctx = min(len(request.texto), r.end + context_window)
+                context = request.texto[start_ctx:end_ctx]
                 
-                # Verificar se contém palavras suspeitas
-                if any(palavra in texto_detectado for palavra in ["email", "telefone", "documento"]):
-                    skip = True
+                # Usar validador robusto com Geopy + PyCountry
+                is_valid = person_location_filter.should_keep_as_location(texto_original, context, r.score)
+                logger.debug(f"LOCATION '{texto_original}' - Validador: {is_valid} (score: {r.score:.2f})")
                 
-                # Filtrar siglas muito curtas (2-4 letras maiúsculas) SEM espaços e SEM contexto
-                if len(texto_original) <= 4 and texto_original.isupper() and " " not in texto_original:
-                    # Verificar se tem contexto de localização nas palavras próximas
-                    context_window = 30
-                    start_context = max(0, r.start - context_window)
-                    end_context = min(len(request.texto), r.end + context_window)
-                    context = request.texto[start_context:end_context].lower()
-                    
-                    location_keywords = ["rua", "avenida", "cidade", "estado", "municipio", "bairro", 
-                                        "endereco", "local", "residencia", "domicilio"]
-                    has_location_context = any(keyword in context for keyword in location_keywords)
-                    
-                    if not has_location_context:
-                        skip = True
-                
-                # Threshold otimizado para LOCATION (0.70 via ThresholdOptimizer)
-                if not skip:
+                if is_valid:
                     filtered_results.append(r)
+                # else: rejeitar (validador retornou False)
                     
             # Para BR_CPF e BR_PHONE - remover duplicatas e aplicar validação
             elif r.entity_type in ["BR_CPF", "BR_PHONE"]:
@@ -467,6 +559,19 @@ async def processar_texto(request: ProcessamentoRequest):
             "BR_UNION_MEMBERSHIP": OperatorConfig("replace", {"new_value": "[DADO_SENSÍVEL]"}),
             "BR_HEALTH_DATA": OperatorConfig("replace", {"new_value": "[DADO_SENSÍVEL]"}),
             "BR_SEXUAL_ORIENTATION": OperatorConfig("replace", {"new_value": "[DADO_SENSÍVEL]"}),
+            # Documentos adicionais
+            "BR_VOTER_ID": OperatorConfig("replace", {"new_value": "[TÍTULO_ELEITOR]"}),
+            "BR_WORK_CARD": OperatorConfig("replace", {"new_value": "[CTPS]"}),
+            "BR_DRIVER_LICENSE": OperatorConfig("replace", {"new_value": "[CNH]"}),
+            "BR_PIS_PASEP": OperatorConfig("replace", {"new_value": "[PIS/PASEP]"}),
+            "BR_CNS": OperatorConfig("replace", {"new_value": "[CNS]"}),
+            "BR_PASSPORT": OperatorConfig("replace", {"new_value": "[PASSAPORTE]"}),
+            "BR_RESERVISTA": OperatorConfig("replace", {"new_value": "[CERTIFICADO_RESERVISTA]"}),
+            "BR_PROFESSIONAL_REGISTRY": OperatorConfig("replace", {"new_value": "[REGISTRO_PROFISSIONAL]"}),
+            "BR_PIX_KEY": OperatorConfig("replace", {"new_value": "[CHAVE_PIX]"}),
+            "BR_RENAVAM": OperatorConfig("replace", {"new_value": "[RENAVAM]"}),
+            "BR_SCHOOL_REGISTRATION": OperatorConfig("replace", {"new_value": "[MATRÍCULA_ESCOLAR]"}),
+            "BR_BENEFIT_NUMBER": OperatorConfig("replace", {"new_value": "[NÚMERO_BENEFÍCIO]"}),
             # Default
             "DEFAULT": OperatorConfig("replace", {"new_value": "[OCULTO]"}),
         }

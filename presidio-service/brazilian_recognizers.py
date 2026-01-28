@@ -152,33 +152,34 @@ class BrazilPhoneRecognizer(PatternRecognizer):
     - 00 00000-0000
     - 0000000000 (10 digitos)
     - 00000000000 (11 digitos)
+    - (00)00000-0000 (sem espaço)
     
     Validação: DDD brasileiro válido (11-99) e não pode ser sequência repetida
     """
     PATTERNS = [
         Pattern(
             name="phone_with_parentheses",
-            regex=r"\(\d{2}\)\s?\d{4,5}-\d{4}",
+            regex=r"\(\d{2}\)\s?\d{4,5}-?\d{4}",
             score=0.95,
         ),
         Pattern(
             name="phone_without_parentheses",
-            regex=r"\b\d{2}\s?\d{4,5}-\d{4}\b",
-            score=0.9,
+            regex=r"\b\d{2}\s?\d{4,5}-?\d{4}\b",
+            score=0.85,
         ),
         Pattern(
             name="phone_only_digits_11",
             regex=r"(?<!\d)\d{11}(?!\d)",
-            score=0.6,  # Aumentado de 0.5 para 0.6
+            score=0.50,  # Reduzido para capturar mais
         ),
         Pattern(
             name="phone_only_digits_10",
             regex=r"(?<!\d)\d{10}(?!\d)",
-            score=0.55,  # Aumentado de 0.45 para 0.55
+            score=0.45,  # Reduzido para capturar mais
         ),
     ]
 
-    CONTEXT = ["telefone", "celular", "contato", "fone", "tel", "whatsapp", "zap", "ligar", "falar", "numero", "discador"]
+    CONTEXT = ["telefone", "celular", "contato", "fone", "tel", "whatsapp", "zap", "ligar", "falar", "numero", "discador", "tel.", "fone:", "meus dados", "dados:", "gestor"]
     
     # DDDs brasileiros válidos
     VALID_DDDS = set([
@@ -439,9 +440,16 @@ class BrazilProfessionRecognizer(PatternRecognizer):
         "veterinario", "veterinaria", "jornalista", "analista", "desenvolvedor",
         "desenvolvedora", "programador", "programadora", "designer", "tecnico", "tecnica",
         "gerente", "coordenador", "coordenadora", "diretor", "diretora", "supervisor",
-        "supervisora", "assistente", "auxiliar", "recepcionista", "secretario", "secretaria",
-        "motorista", "operador", "operadora", "consultor", "consultora", "vendedor",
+        "supervisora", "assistente", "auxiliar", "recepcionista", "motorista", 
+        "operador", "operadora", "consultor", "consultora", "vendedor",
         "vendedora", "comerciante", "empresario", "empresaria", "autonomo", "autonoma"
+    ]
+    
+    # Palavras que NÃO são profissões (blacklist)
+    PROFESSION_BLACKLIST = [
+        "secretaria", "secretario",  # Órgãos governamentais, não profissão no contexto
+        "ministerio", "tribunal", "conselho", "comissao",
+        "governo", "prefeitura", "estado", "uniao", "municipio"
     ]
     
     PATTERNS = [
@@ -474,6 +482,13 @@ class BrazilProfessionRecognizer(PatternRecognizer):
             context=context,
             supported_language=supported_language,
         )
+    
+    def validate_result(self, pattern_text: str) -> Optional[bool]:
+        """Valida se não é termo administrativo/órgão"""
+        texto_lower = pattern_text.lower()
+        if texto_lower in self.PROFESSION_BLACKLIST:
+            return False  # Rejeitar
+        return None  # Aceitar
 
 
 class BrazilMaritalStatusRecognizer(PatternRecognizer):
@@ -987,3 +1002,538 @@ class BrazilSexualOrientationRecognizer(PatternRecognizer):
             supported_language=supported_language,
         )
 
+
+class BrazilGenericPhoneRecognizer(PatternRecognizer):
+    """
+    Reconhecedor genérico para números que aparecem após palavras-chave de telefone
+    Captura: "Tel: 21-1205-1999", "Fone: 1234-5678", etc.
+    """
+    PATTERNS = [
+        Pattern(
+            name="phone_after_keyword",
+            regex=r"(?:Tel\.?:|Fone:?|Telefone:?|Celular:?|Contato:?|Gestor)\s*\d{2,3}[-\s]?\d{4}-?\d{4}",
+            score=0.90,
+        ),
+        Pattern(
+            name="phone_generic_dash",
+            regex=r"\b\d{2}-\d{4}-\d{4}\b",
+            score=0.85,
+        ),
+        Pattern(
+            name="phone_ppgg_format",
+            regex=r"\b\d{2}-\d{4}-\d{4}\b|\bPPGG\s+\d{2}-\d{4}-\d{4}\b",
+            score=0.90,
+        ),
+    ]
+
+    CONTEXT = ["tel", "telefone", "fone", "celular", "contato", "gestor", "ppgg", "meus dados"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_PHONE",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilNameRecognizer(PatternRecognizer):
+    """
+    Reconhecedor de nomes brasileiros baseado em dicionário
+    Melhora detecção de nomes próprios comuns no Brasil
+    """
+    # Nomes próprios brasileiros muito comuns
+    FIRST_NAMES = [
+        "ana", "antonio", "carlos", "francisco", "jose", "joao", "maria", "paulo", "pedro", "lucas",
+        "gabriel", "rafael", "fernando", "marcos", "luis", "luiz", "ricardo", "rodrigo", "bruno", "diego",
+        "felipe", "gustavo", "henrique", "marcelo", "mateus", "thiago", "vinicius", "andre", "eduardo", "fabio",
+        "juliana", "mariana", "patricia", "aline", "amanda", "beatriz", "camila", "carolina", "daniela", "fernanda",
+        "isabela", "jessica", "julia", "larissa", "leticia", "michelle", "natalia", "priscila", "renata", "sandra",
+        "vanessa", "adriana", "alessandra", "bruna", "claudia", "cristina", "debora", "elaine", "giovana", "luciana",
+        "marina", "monica", "paula", "raquel", "silvia", "simone", "tatiana", "valeria", "viviane", "roberto",
+        "sergio", "Alexandre", "anderson", "cesar", "daniel", "edson", "emerson", "fabiano", "gilberto", "ivan",
+        "jorge", "leandro", "leonardo", "marcio", "mario", "mauro", "nelson", "oscar", "renan", "rogerio",
+        "ronaldo", "samuel", "tiago", "wagner", "walter", "wellington", "william", "adriano", "alberto", "alex",
+        "claudio", "cleber", "denis", "davi", "eder", "elias", "evandro", "flavio", "giovani", "guilherme",
+        "heitor", "hugo", "igor", "joaquim", "jonas", "julio", "junior", "caio", "otavio", "raul", "vitor",
+        "regina", "rosa", "ruth", "sonia", "sueli", "teresa", "vera", "alice", "cecilia", "clara", "denise",
+        "diana", "elisa", "eva", "gloria", "helena", "ines", "irene", "lara", "lidia", "lilian", "luana",
+        "lucia", "luisa", "mara", "margareth", "rita", "rosana", "sabrina", "sofia", "sonia", "tais",
+    ]
+    
+    # Sobrenomes brasileiros muito comuns
+    LAST_NAMES = [
+        "silva", "santos", "oliveira", "souza", "rodrigues", "ferreira", "alves", "pereira", "lima", "gomes",
+        "costa", "ribeiro", "martins", "carvalho", "rocha", "almeida", "nascimento", "araujo", "melo", "barbosa",
+        "cardoso", "reis", "castro", "andrade", "pinto", "moreira", "freitas", "fernandes", "dias", "cavalcanti",
+        "monteiro", "mendes", "barros", "batista", "lopes", "marques", "borges", "pires", "moura", "cunha",
+        "correa", "campos", "teixeira", "vieira", "azevedo", "sales", "xavier", "macedo", "farias", "nunes",
+        "ramos", "miranda", "nogueira", "duarte", "pacheco", "rodrigues", "medeiros", "amaral", "fonseca", "guimaraes",
+        "soares", "fogaca", "cavalcante", "brito", "miranda", "siqueira", "moraes", "coelho", "vasconcelos", "neves",
+        "cabral", "domingues", "toledo", "lacerda", "bezerra", "bastos", "guerra", "brandao", "torres", "santiago",
+        "bueno", "freire", "assumpcao", "queiroz", "arruda", "sa", "chaves", "caldeira", "villa", "neto",
+        "junior", "filho", "segundo", "terceiro", "sobrinho", "franco", "rosa", "cruz", "mota", "alvares",
+    ]
+    
+    # Padrão: Nome + Sobrenome(s)
+    first_names_pattern = "|".join(FIRST_NAMES)
+    last_names_pattern = "|".join(LAST_NAMES)
+    
+    PATTERNS = [
+        # Nome + Sobrenome comum (case insensitive)
+        Pattern(
+            name="brazilian_name_full",
+            regex=rf"\b(?i)({first_names_pattern})\s+(?:[A-Z][a-z]+\s+)*({last_names_pattern})\b",
+            score=0.85,
+        ),
+        # Sobrenome + Sobrenome + Sobrenome (3+ palavras capitalizadas)
+        Pattern(
+            name="multiple_surnames",
+            regex=r"\b[A-Z][a-z]+\s+[A-Z][a-z]+\s+(?:[A-Z][a-z]+\s+)*[A-Z][a-z]+\b",
+            score=0.70,
+        ),
+    ]
+
+    CONTEXT = ["nome", "sr", "sra", "dr", "dra", "prof", "servidor", "servidora", "cidadao", "cidada"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "PERSON",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilVoterIdRecognizer(PatternRecognizer):
+    """
+    Reconhece Título de Eleitor brasileiro
+    Formato: 12 dígitos (XXXXXXXXXXXX)
+    """
+    PATTERNS = [
+        Pattern(
+            name="voter_id_12digits",
+            regex=r"\b\d{12}\b",
+            score=0.70,
+        ),
+    ]
+
+    CONTEXT = ["titulo", "eleitor", "eleitoral", "zona", "secao", "seção"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_VOTER_ID",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilWorkCardRecognizer(PatternRecognizer):
+    """
+    Reconhece CTPS (Carteira de Trabalho)
+    Padrão: CTPS: 65421 - Série: 00123/DF
+    """
+    PATTERNS = [
+        Pattern(
+            name="ctps_full",
+            regex=r"\b\d{5,7}\s*-?\s*[Ss]érie:?\s*\d{4,5}/[A-Z]{2}\b",
+            score=0.90,
+        ),
+        Pattern(
+            name="ctps_number",
+            regex=r"(?i)ctps:?\s*\d{5,7}",
+            score=0.85,
+        ),
+    ]
+
+    CONTEXT = ["ctps", "carteira", "trabalho", "serie"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_WORK_CARD",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilDriverLicenseRecognizer(PatternRecognizer):
+    """
+    Reconhece CNH (Carteira Nacional de Habilitação)
+    Formato: 11 dígitos
+    """
+    PATTERNS = [
+        Pattern(
+            name="cnh_with_context",
+            regex=r"(?i)cnh:?\s*\d{11}\b",
+            score=0.90,
+        ),
+    ]
+
+    CONTEXT = ["cnh", "habilitacao", "carteira", "motorista"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_DRIVER_LICENSE",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilPisPasepRecognizer(PatternRecognizer):
+    """
+    Reconhece PIS/PASEP brasileiro
+    Formato: XXX.XXXXX.XX-X
+    """
+    PATTERNS = [
+        Pattern(
+            name="pis_formatted",
+            regex=r"\b\d{3}\.\d{5}\.\d{2}-\d{1}\b",
+            score=0.95,
+        ),
+    ]
+
+    CONTEXT = ["pis", "pasep", "nis"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_PIS_PASEP",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilCnsRecognizer(PatternRecognizer):
+    """
+    Reconhece CNS (Cartão Nacional de Saúde - SUS)
+    Formato: 15 dígitos
+    """
+    PATTERNS = [
+        Pattern(
+            name="cns_15digits",
+            regex=r"\b[1-2]\d{14}\b",
+            score=0.75,
+        ),
+        Pattern(
+            name="cns_with_context",
+            regex=r"(?i)cns:?\s*\d{15}\b",
+            score=0.90,
+        ),
+    ]
+
+    CONTEXT = ["cns", "sus", "cartao nacional", "saude"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_CNS",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilPassportRecognizer(PatternRecognizer):
+    """
+    Reconhece Passaporte brasileiro
+    Formato: 2 letras + 6 dígitos (EX: AA123456)
+    """
+    PATTERNS = [
+        Pattern(
+            name="passport_format",
+            regex=r"\b[A-Z]{2}\d{6}\b",
+            score=0.80,
+        ),
+        Pattern(
+            name="passport_with_context",
+            regex=r"(?i)passaporte:?\s*[A-Z]{2}\d{6}\b",
+            score=0.95,
+        ),
+    ]
+
+    CONTEXT = ["passaporte", "passport", "viagem"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_PASSPORT",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilReservistaRecognizer(PatternRecognizer):
+    """
+    Reconhece Certificado de Reservista
+    """
+    PATTERNS = [
+        Pattern(
+            name="reservista_with_context",
+            regex=r"(?i)reservista:?\s*\d{6,12}",
+            score=0.90,
+        ),
+    ]
+
+    CONTEXT = ["reservista", "militar", "exercito", "dispensa"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_RESERVISTA",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilProfessionalRegistryRecognizer(PatternRecognizer):
+    """
+    Reconhece registros profissionais (OAB, CRM, CREA, CRC, etc)
+    """
+    PATTERNS = [
+        Pattern(
+            name="oab_format",
+            regex=r"(?i)oab[/-]?[A-Z]{2}:?\s*\d{4,6}",
+            score=0.95,
+        ),
+        Pattern(
+            name="crm_format",
+            regex=r"(?i)crm[/-]?[A-Z]{2}:?\s*\d{4,8}",
+            score=0.95,
+        ),
+        Pattern(
+            name="crea_format",
+            regex=r"(?i)crea[/-]?[A-Z]{2}:?\s*\d{4,10}",
+            score=0.95,
+        ),
+        Pattern(
+            name="generic_professional",
+            regex=r"(?i)(oab|crm|crea|crc|coren|cref|crp|cro|cfp):?\s*\d{4,10}",
+            score=0.85,
+        ),
+    ]
+
+    CONTEXT = ["oab", "crm", "crea", "crc", "registro", "conselho"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_PROFESSIONAL_REGISTRY",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilPixKeyRecognizer(PatternRecognizer):
+    """
+    Reconhece Chave PIX (chave aleatória UUID)
+    """
+    PATTERNS = [
+        Pattern(
+            name="pix_random_key",
+            regex=r"\b[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\b",
+            score=0.85,
+        ),
+        Pattern(
+            name="pix_with_context",
+            regex=r"(?i)chave\s*pix:?\s*[\w\-]+",
+            score=0.90,
+        ),
+    ]
+
+    CONTEXT = ["pix", "chave pix", "transferencia"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_PIX_KEY",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilRenavamRecognizer(PatternRecognizer):
+    """
+    Reconhece RENAVAM (11 dígitos)
+    """
+    PATTERNS = [
+        Pattern(
+            name="renavam_with_context",
+            regex=r"(?i)renavam:?\s*\d{11}\b",
+            score=0.95,
+        ),
+    ]
+
+    CONTEXT = ["renavam", "veiculo", "licenciamento"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_RENAVAM",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilSchoolRegistrationRecognizer(PatternRecognizer):
+    """
+    Reconhece Matrícula Escolar
+    """
+    PATTERNS = [
+        Pattern(
+            name="school_registration",
+            regex=r"(?i)matr[ií]cula:?\s*\d{6,15}",
+            score=0.85,
+        ),
+    ]
+
+    CONTEXT = ["matricula", "aluno", "estudante", "escola"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_SCHOOL_REGISTRATION",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
+
+
+class BrazilBenefitNumberRecognizer(PatternRecognizer):
+    """
+    Reconhece Número de Benefício (INSS, Bolsa Família)
+    """
+    PATTERNS = [
+        Pattern(
+            name="inss_benefit",
+            regex=r"(?i)(nb|beneficio):?\s*\d{10}",
+            score=0.90,
+        ),
+        Pattern(
+            name="generic_benefit",
+            regex=r"(?i)(beneficio|auxilio):?\s*\d{8,15}",
+            score=0.75,
+        ),
+    ]
+
+    CONTEXT = ["beneficio", "inss", "aposentadoria", "pensao", "auxilio"]
+
+    def __init__(
+        self,
+        patterns: Optional[List[Pattern]] = None,
+        context: Optional[List[str]] = None,
+        supported_language: str = "pt",
+        supported_entity: str = "BR_BENEFIT_NUMBER",
+    ):
+        patterns = patterns if patterns else self.PATTERNS
+        context = context if context else self.CONTEXT
+        super().__init__(
+            supported_entity=supported_entity,
+            patterns=patterns,
+            context=context,
+            supported_language=supported_language,
+        )
