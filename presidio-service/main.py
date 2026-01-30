@@ -327,7 +327,8 @@ async def processar_texto(request: ProcessamentoRequest):
             "assunto", "esbulho", "registrado", "delegacias", "registros",
             "vida empreendimentos", "cooperativas financeiras",
             # Saudações e palavras soltas que não são nomes
-            "ola", "oi", "prezados", "prezadas", "tarde", "bom", "boa",
+            "ola", "olá", "oi", "prezados", "prezadas", "tarde", "bom", "boa",
+            "dia", "noite",
             # Palavras soltas mal interpretadas
             "id", "texto", "superior", "juvenil", "civil", "box", "advogados",
             "sou", "inquilina", "sic", "referente", "administrativa",
@@ -335,9 +336,16 @@ async def processar_texto(request: ProcessamentoRequest):
             "novo", "pedido", "ajuda", "geral", "exista", "ou", "nude",
             "fato", "da", "do", "de", "em", "no", "na", "dos", "das",
             "serra", "sp", "cep", "ltda", "s/a", "sa", "an",
+            # Siglas de estados
+            "er", "es", "rj", "mg", "ba", "pr", "sc", "rs", "go", "df",
+            # Sufixos de documentos
+            "cpf", "rg", "cnh", "cnpj",
+            # Artistas e figuras históricas
+            "athos bulsao", "athos bulsão",
             # Químicos/técnicos ambientais
-            "coliformes", "termotolerantes", "fosforo", "nitrogenio",
-            "amoniacal", "oxigenio", "dissolvido", "solidos", "totais"
+            "coliformes", "termotolerantes", "fosforo", "fósforo", 
+            "nitrogenio", "nitrogênio", "amoniacal", "oxigenio", "oxigênio", 
+            "dissolvido", "solidos", "sólidos", "totais", "total"
         ]
         
         # Criar índice de spans para detectar sobreposições
@@ -368,8 +376,15 @@ async def processar_texto(request: ProcessamentoRequest):
                 end_ctx = min(len(request.texto), r.end + context_window)
                 context = request.texto[start_ctx:end_ctx]
                 
-                # Usar validador robusto com NameDataset
-                is_valid = person_location_filter.should_keep_as_person(texto_original, context, r.score)
+                # Usar validador robusto com NameDataset + análise de contexto
+                is_valid = person_location_filter.should_keep_as_person(
+                    texto_original, 
+                    context, 
+                    r.score,
+                    start=r.start,
+                    end=r.end,
+                    full_text=request.texto
+                )
                 logger.debug(f"✅ PERSON '{texto_original}' - Validador: {is_valid} (score: {r.score:.2f})")
                 
                 if is_valid:

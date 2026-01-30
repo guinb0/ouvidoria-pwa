@@ -90,6 +90,18 @@ class NameValidator:
             "banco de dados", "aplicativo", "programa", "integridade", "monitoramento",
             "carteira de trabalho", "interesse", "ajuda", "ouvidoria", "canal",
             "contoladoria", "assunto", "esbulho", "texto", "superior", "juvenil",
+            # Saudações e interjeições - NUNCA SÃO NOMES
+            "ola", "olá", "oi", "bom", "boa", "tarde", "dia", "noite",
+            "prezados", "prezadas", "caro", "cara", "senhor", "senhora",
+            # Siglas de estados/documentos que aparecem sozinhas
+            "er", "es", "rj", "sp", "mg", "ba", "pr", "sc", "rs", "go", "df",
+            "cpf", "rg", "cnh", "oab", "cnpj", "cep",
+            # Termos químicos e ambientais
+            "fosforo", "fósforo", "nitrogenio", "nitrogênio", "oxigenio", "oxigênio",
+            "coliformes", "solidos", "sólidos", "termotolerantes", "amoniacal",
+            "dissolvido", "total", "totais",
+            # Artistas e figuras históricas
+            "athos", "bulsao", "bulsão",
             # Palavras compostas técnicas
             "governo", "distrito", "federal", "mestrado", "escola", "politicas",
             "instituto", "brasileiro", "ensino", "desenvolvimento", "pesquisa",
@@ -247,14 +259,46 @@ class NameValidator:
         
         # 1.2. Rejeitar palavras únicas que são claramente não-nomes
         single_word_blacklist = {
-            "ola", "oi", "id", "texto", "superior", "juvenil", "civil",
-            "tarde", "box", "advogados", "sou", "inquilina", "sic",
+            "ola", "olá", "oi", "id", "texto", "superior", "juvenil", "civil",
+            "tarde", "dia", "noite", "bom", "boa", "box", "advogados", "sou", "inquilina", "sic",
             "referente", "administrativa", "gama", "oab", "ltda",
-            "coliformes", "fosforo", "nitrogenio", "oxigenio", "solidos",
-            "empenho", "emenda", "inciso", "validador", "canal", "geral"
+            "coliformes", "fosforo", "fósforo", "nitrogenio", "nitrogênio", 
+            "oxigenio", "oxigênio", "solidos", "sólidos",
+            "empenho", "emenda", "inciso", "validador", "canal", "geral",
+            "total", "totais", "amoniacal", "dissolvido", "termotolerantes",
+            "er", "es", "rj", "sp", "mg", "ba", "pr", "sc", "rs", "go", "df",
+            "cpf", "rg", "cnh", "cnpj", "cep"
         }
         if len(palavras) == 1 and palavras[0] in single_word_blacklist:
             return False
+        
+        # 1.3. Rejeitar artistas/personalidades históricas em contexto de obras
+        # Padrão: "painéis Athos Bulsão", "vitrais X", "mosaicos Y"
+        artist_context_words = ["painel", "paineis", "painéis", "vitral", "vitrais", 
+                                 "mosaico", "mosaicos", "obra", "obras", "escultura", 
+                                 "pintura", "arte", "artista"]
+        # Se o texto aparece após palavras de contexto artístico, não é nome de pessoa real
+        
+        # 1.4. Rejeitar combinações químicas/técnicas específicas
+        if len(palavras) == 2:
+            technical_combos = {
+                ("fosforo", "total"), ("fósforo", "total"),
+                ("nitrogenio", "total"), ("nitrogênio", "total"), 
+                ("nitrogenio", "amoniacal"), ("nitrogênio", "amoniacal"),
+                ("oxigenio", "dissolvido"), ("oxigênio", "dissolvido"),
+                ("solidos", "totais"), ("sólidos", "totais"),
+                ("coliformes", "termotolerantes"),
+                ("er", "es"), # Siglas de estados juntas
+            }
+            if tuple(palavras) in technical_combos:
+                return False
+        
+        # 1.4. Rejeitar se tem sufixos de documentos (nome + CPF/RG/etc)
+        if any(doc in text_lower for doc in [" cpf", " rg", " cnh", " oab", " cnpj"]):
+            # Se termina com documento, pode ser "Nome CPF" - aceitar só o nome
+            # Mas se o spaCy capturou junto, rejeitar
+            if text_lower.endswith(("cpf", "rg", "cnh", "oab", "cnpj")):
+                return False
         
         # Verificar cada palavra
         for palavra in palavras:
@@ -413,6 +457,66 @@ class NameValidator:
             # Nome válido: tem primeiro nome E sobrenome OU tem 2+ componentes válidos
             return (has_first_name and has_last_name) or valid_components >= 2
 
+    def analyze_context(self, text: str, start: int, end: int, full_text: str) -> dict:
+        """
+        Analisa o contexto ao redor de uma entidade detectada para melhorar precisão
+        
+        Args:
+            text: O texto da entidade detectada
+            start: Posição inicial da entidade no texto completo
+            end: Posição final da entidade no texto completo
+            full_text: O texto completo
+            
+        Returns:
+            dict com análise de contexto e score de confiança
+        """
+        # Pegar 100 caracteres antes e depois para contexto
+        context_before = full_text[max(0, start - 100):start].lower()
+        context_after = full_text[end:min(len(full_text), end + 100)].lower()
+        
+        confidence_score = 1.0
+        reasons = []
+        
+        # INDICADORES POSITIVOS (aumentam confiança que é nome real)
+        signature_patterns = ["atenciosamente", "att", "at.te", "cordialmente", 
+                              "assinado", "responsavel", "solicitante"]
+        if any(pattern in context_before[-50:] for pattern in signature_patterns):
+            confidence_score += 0.3
+            reasons.append("contexto_assinatura")
+        
+        # Nome seguido de CPF/RG/documento
+        doc_patterns = ["cpf", "rg:", "cnh:", "telefone:", "tel:", "email:", "fone:"]
+        if any(pattern in context_after[:50] for pattern in doc_patterns):
+            confidence_score += 0.4
+            reasons.append("seguido_de_documento")
+        
+        # INDICADORES NEGATIVOS (reduzem confiança)
+        # Contexto de obra de arte
+        art_patterns = ["painel", "paineis", "painéis", "vitral", "vitrais", 
+                        "mosaico", "mosaicos", "obra de", "escultura"]
+        if any(pattern in context_before[-50:] for pattern in art_patterns):
+            confidence_score -= 0.8
+            reasons.append("contexto_artistico")
+        
+        # Contexto institucional
+        inst_patterns = ["escola de", "universidade de", "instituto de", 
+                         "mestrado", "doutorado", "curso de"]
+        if any(pattern in context_before[-50:] for pattern in inst_patterns):
+            confidence_score -= 0.5
+            reasons.append("contexto_institucional")
+        
+        # Contexto químico/técnico
+        tech_patterns = ["concentracao", "concentração", "nivel", "nível", 
+                         "parametro", "parâmetro", "analise", "análise"]
+        if any(pattern in context_before[-40:] for pattern in tech_patterns):
+            confidence_score -= 0.6
+            reasons.append("contexto_tecnico")
+        
+        return {
+            "confidence": max(0.0, min(2.0, confidence_score)),
+            "reasons": reasons,
+            "is_likely_name": confidence_score >= 0.7
+        }
 
 class LocationValidator:
     """
@@ -605,7 +709,8 @@ class PersonLocationFilter:
         self.name_validator = NameValidator()
         self.location_validator = LocationValidator()
     
-    def should_keep_as_person(self, text: str, context: str = "", score: float = 0.0) -> bool:
+    def should_keep_as_person(self, text: str, context: str = "", score: float = 0.0, 
+                             start: int = 0, end: int = 0, full_text: str = "") -> bool:
         """
         Decide se uma detecção de PERSON deve ser mantida
         
@@ -613,12 +718,26 @@ class PersonLocationFilter:
             text: Texto detectado
             context: Contexto ao redor
             score: Score de confiança do modelo
+            start: Posição inicial no texto completo
+            end: Posição final no texto completo
+            full_text: Texto completo para análise de contexto
             
         Returns:
             True se deve manter como PERSON, False para rejeitar
         """
-        # Usar validador robusto de nomes
-        return self.name_validator.is_valid_name(text)
+        # Primeiro: validação básica de nome
+        if not self.name_validator.is_valid_name(text):
+            return False
+        
+        # Se temos acesso ao texto completo, usar análise de contexto
+        if full_text and start >= 0 and end > 0:
+            context_analysis = self.name_validator.analyze_context(text, start, end, full_text)
+            
+            # Se contexto indica que NÃO é nome (confiança < 0.7), rejeitar
+            if not context_analysis["is_likely_name"]:
+                return False
+        
+        return True
     
     def should_keep_as_location(self, text: str, context: str = "", score: float = 0.0) -> bool:
         """
