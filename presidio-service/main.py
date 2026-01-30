@@ -62,41 +62,9 @@ from brazilian_recognizers import (
     BrazilBenefitNumberRecognizer,
 )
 
-# Importar otimizador ensemble
-from ensemble_optimizer import (
-    ThresholdOptimizer,
-    EnsembleVoter,
-    calculate_confidence_boost
-)
-
-# Tentar importar Flair para NER de alta precisão
-try:
-    from flair.data import Sentence
-    from flair.models import SequenceTagger
-    FLAIR_AVAILABLE = True
-except ImportError:
-    FLAIR_AVAILABLE = False
-
-# Tentar importar Stanza para NER transformer
-try:
-    import stanza
-    STANZA_AVAILABLE = True
-except ImportError:
-    STANZA_AVAILABLE = False
-
 # Configurar logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-if FLAIR_AVAILABLE:
-    logger.info("Flair disponivel para NER de alta precisao")
-else:
-    logger.warning("Flair nao instalado, usando apenas spaCy")
-
-if STANZA_AVAILABLE:
-    logger.info("Stanza disponivel para NER transformer")
-else:
-    logger.warning("Stanza nao instalado")
 
 app = FastAPI(title="Ouvidoria Presidio Service", version="1.0.0")
 
@@ -115,29 +83,7 @@ configuration = {
     "models": [{"lang_code": "pt", "model_name": "pt_core_news_lg"}],
 }
 
-# Tentar carregar Stanza transformer NER  
-# DESABILITADO: modelo não descompacta corretamente
-stanza_nlp = None
-# if STANZA_AVAILABLE:
-#     try:
-#         logger.info("Baixando modelo Stanza português (primeira vez pode demorar)...")
-#         stanza.download('pt', logging_level='ERROR')
-#         stanza_nlp = stanza.Pipeline('pt', processors='tokenize,ner', logging_level='ERROR')
-#         logger.info("✅ Stanza transformer NER português carregado - máxima precisão!")
-#     except Exception as e:
-#         logger.warning(f"❌ Falha ao carregar Stanza: {e}")
-#         stanza_nlp = None
-
-# Inicializar Flair se disponível
-flair_tagger = None
-if FLAIR_AVAILABLE:
-    try:
-        logger.info("Carregando modelo Flair NER multilingue (suporta português)...")
-        flair_tagger = SequenceTagger.load('ner-multi')
-        logger.info("✅ Flair NER multilingue carregado - melhora recall de PERSON/LOCATION")
-    except Exception as e:
-        logger.warning(f"❌ Falha ao carregar Flair: {e}")
-        flair_tagger = None
+# Usando apenas spaCy para NER - mais rápido e eficiente
 
 # Inicializar Presidio com spaCy e reconhecedores customizados
 try:
@@ -146,7 +92,8 @@ try:
     
     # Criar registro de reconhecedores
     registry = RecognizerRegistry()
-    registry.load_predefined_recognizers(nlp_engine=nlp_engine)
+    # NÃO carregar recognizers do spaCy - usar apenas customizados
+    # registry.load_predefined_recognizers(nlp_engine=nlp_engine)
     
     # Adicionar reconhecedores brasileiros customizados
     registry.add_recognizer(BrazilCpfRecognizer())
@@ -178,6 +125,12 @@ try:
     registry.add_recognizer(BrazilHealthDataRecognizer())
     registry.add_recognizer(BrazilSexualOrientationRecognizer())
     registry.add_recognizer(BrazilNameRecognizer())  # Nomes brasileiros
+    
+    # Adicionar reconhecedor personalizado de nomes brasileiros por padrão
+    from brazilian_name_recognizer import BrazilianNameRecognizer
+    registry.add_recognizer(BrazilianNameRecognizer())
+    logger.info("Reconhecedor customizado de nomes brasileiros (pattern-based) adicionado")
+    
     registry.add_recognizer(BrazilVoterIdRecognizer())  # Título de Eleitor
     registry.add_recognizer(BrazilWorkCardRecognizer())  # CTPS
     registry.add_recognizer(BrazilDriverLicenseRecognizer())  # CNH
@@ -238,93 +191,7 @@ except Exception as e:
         logger.info("Filtro robusto inicializado mesmo no fallback")
 
 
-def aplicar_ner_complementar(texto: str, results_spacy: List):
-    """
-    Aplica Flair e Stanza para detectar entidades adicionais não capturadas pelo spaCy
-    """
-    from presidio_analyzer import RecognizerResult
-    
-    resultados_extras = []
-    
-    # Aplicar Flair NER
-    if flair_tagger:
-        try:
-            sentence = Sentence(texto)
-            flair_tagger.predict(sentence)
-            
-            for entity in sentence.get_spans('ner'):
-                # Mapear tags do Flair para Presidio
-                flair_type = entity.tag
-                presidio_type = None
-                
-                if flair_type in ['PER', 'B-PER', 'I-PER', 'E-PER', 'S-PER']:
-                    presidio_type = 'PERSON'
-                elif flair_type in ['LOC', 'B-LOC', 'I-LOC', 'E-LOC', 'S-LOC']:
-                    presidio_type = 'LOCATION'
-                elif flair_type in ['ORG', 'B-ORG', 'I-ORG', 'E-ORG', 'S-ORG']:
-                    presidio_type = 'PERSON'  # Tratamos ORG como PERSON para validação posterior
-                
-                if presidio_type:
-                    # Verificar se já foi detectado pelo spaCy
-                    start_pos = entity.start_position
-                    end_pos = entity.end_position
-                    
-                    ja_existe = any(
-                        r.start == start_pos and r.end == end_pos 
-                        for r in results_spacy
-                    )
-                    
-                    if not ja_existe:
-                        resultados_extras.append(RecognizerResult(
-                            entity_type=presidio_type,
-                            start=start_pos,
-                            end=end_pos,
-                            score=entity.score
-                        ))
-                        logger.debug(f"✨ Flair detectou: '{texto[start_pos:end_pos]}' ({presidio_type})")
-        except Exception as e:
-            logger.warning(f"Erro ao aplicar Flair: {e}")
-    
-    # Aplicar Stanza NER
-    if stanza_nlp:
-        try:
-            doc = stanza_nlp(texto)
-            
-            for ent in doc.entities:
-                # Mapear tags do Stanza para Presidio
-                stanza_type = ent.type
-                presidio_type = None
-                
-                if stanza_type == 'PER':
-                    presidio_type = 'PERSON'
-                elif stanza_type == 'LOC':
-                    presidio_type = 'LOCATION'
-                elif stanza_type == 'ORG':
-                    presidio_type = 'PERSON'  # Tratamos ORG como PERSON
-                
-                if presidio_type:
-                    # Encontrar posições no texto original
-                    start_pos = ent.start_char
-                    end_pos = ent.end_char
-                    
-                    # Verificar se já foi detectado
-                    ja_existe = any(
-                        r.start == start_pos and r.end == end_pos 
-                        for r in results_spacy + resultados_extras
-                    )
-                    
-                    if not ja_existe:
-                        resultados_extras.append(RecognizerResult(
-                            entity_type=presidio_type,
-                            start=start_pos,
-                            end=end_pos,
-                            score=0.85  # Stanza geralmente tem alta precisão
-                        ))
-                        logger.debug(f"🌟 Stanza detectou: '{texto[start_pos:end_pos]}' ({presidio_type})")
-        except Exception as e:
-            logger.warning(f"Erro ao aplicar Stanza: {e}")
-    
-    return resultados_extras
+# Removida função aplicar_ner_complementar - usando apenas spaCy para performance
 
 
 class ProcessamentoRequest(BaseModel):
@@ -405,17 +272,17 @@ async def processar_texto(request: ProcessamentoRequest):
             text=request.texto,
             language=request.language,
             entities=entities,
-            score_threshold=0.40  # Threshold reduzido para capturar mais (filtros específicos aplicados depois)
+            score_threshold=0.30  # Threshold baixo para capturar padrões customizados
         )
         
-        # Aplicar NER complementar (Flair + Stanza)
-        logger.debug(f"spaCy detectou {len(results)} entidades")
-        resultados_extras = aplicar_ner_complementar(request.texto, results)
-        logger.debug(f"Flair+Stanza adicionaram {len(resultados_extras)} entidades extras")
+        # Log detalhado das detecções ANTES do filtro
+        logger.info(f"Total de entidades detectadas ANTES do filtro: {len(results)}")
+        for r in results[:10]:  # Primeiras 10 para não sobrecarregar o log
+            texto_ent = request.texto[r.start:r.end]
+            logger.debug(f"  - '{texto_ent}' (tipo: {r.entity_type}, score: {r.score:.2f})")
         
-        # Combinar resultados
-        results = results + resultados_extras
-        logger.info(f"Total após ensemble: {len(results)} entidades")
+        # Usando apenas spaCy - mais rápido e com bons validadores
+        logger.info(f"spaCy detectou {len(results)} entidades")
         
         # DESABILITADO: Ensemble optimizer estava reduzindo recall
         # threshold_optimizer = ThresholdOptimizer()
@@ -442,6 +309,14 @@ async def processar_texto(request: ProcessamentoRequest):
         # Filtrar PERSON e LOCATION usando validadores robustos
         filtered_results = []
         
+        # Lista de palavras que NUNCA devem ser anonimizadas (filtro global)
+        never_anonymize_terms = [
+            "escola", "universidade", "faculdade", "instituto", "colegio",
+            "contrato", "convenio", "acordo", "termo", "aditivo",
+            "ministerio", "secretaria", "prefeitura", "tribunal", "governo",
+            "politicas publicas", "mestrado", "doutorado", "graduacao"
+        ]
+        
         # Criar índice de spans para detectar sobreposições
         entity_spans = {}
         for r in results:
@@ -452,6 +327,12 @@ async def processar_texto(request: ProcessamentoRequest):
         
         for r in results:
             skip = False
+            
+            # FILTRO GLOBAL: Rejeitar qualquer entidade que contenha termos institucionais
+            texto_entidade = request.texto[r.start:r.end].lower()
+            if any(term in texto_entidade for term in never_anonymize_terms):
+                logger.info(f"🚫 Rejeitado por filtro global: '{request.texto[r.start:r.end]}' (tipo: {r.entity_type})")
+                continue
             
             # Para PERSON - usar validador robusto
             if r.entity_type == "PERSON":
@@ -498,6 +379,23 @@ async def processar_texto(request: ProcessamentoRequest):
                 if is_valid:
                     filtered_results.append(r)
                 # else: rejeitar (validador retornou False)
+                    
+            # Para ORGANIZATION - filtrar instituições de ensino e órgãos
+            elif r.entity_type == "ORGANIZATION":
+                texto_original = request.texto[r.start:r.end]
+                texto_lower = texto_original.lower()
+                
+                # Nunca anonimizar instituições de ensino e órgãos governamentais
+                if any(term in texto_lower for term in [
+                    "escola", "universidade", "faculdade", "colegio", "instituto",
+                    "centro universitario", "usp", "unicamp", "ufmg", "ufrj",
+                    "ministerio", "secretaria", "prefeitura", "tribunal",
+                    "governo", "camara", "senado", "assembleia"
+                ]):
+                    # Pular - não anonimizar
+                    continue
+                else:
+                    filtered_results.append(r)
                     
             # Para BR_CPF e BR_PHONE - remover duplicatas e aplicar validação
             elif r.entity_type in ["BR_CPF", "BR_PHONE"]:

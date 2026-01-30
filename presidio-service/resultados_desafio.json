@@ -1,0 +1,452 @@
+{
+  "metricas": {
+    "VP": 0,
+    "FP": 0,
+    "FN": 2,
+    "VN": 60,
+    "precisao": 0,
+    "sensibilidade": 0.0,
+    "pontuacao_p1": 0
+  },
+  "analise_detalhada": [
+    {
+      "id": 2,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 0
+    },
+    {
+      "id": 3,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 2
+    },
+    {
+      "id": 5,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 7
+    },
+    {
+      "id": 800,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 5
+    },
+    {
+      "id": 8,
+      "real": "COM dados",
+      "previsto": "SEM dados",
+      "status": "FN ✗",
+      "num_entidades": 4
+    },
+    {
+      "id": 9,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 3
+    },
+    {
+      "id": 10,
+      "real": "COM dados",
+      "previsto": "SEM dados",
+      "status": "FN ✗",
+      "num_entidades": 5
+    },
+    {
+      "id": 87,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 4
+    },
+    {
+      "id": 11,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 0
+    },
+    {
+      "id": 11,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 16
+    },
+    {
+      "id": 16,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 23
+    },
+    {
+      "id": 18,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 10
+    },
+    {
+      "id": 21,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 3
+    },
+    {
+      "id": 23,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 27
+    },
+    {
+      "id": 29,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 0
+    },
+    {
+      "id": 30,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 5
+    },
+    {
+      "id": 31,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 5
+    },
+    {
+      "id": 32,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 4
+    },
+    {
+      "id": 33,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 4
+    },
+    {
+      "id": 34,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 1
+    },
+    {
+      "id": 35,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 0
+    },
+    {
+      "id": 36,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 5
+    },
+    {
+      "id": 38,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 18
+    },
+    {
+      "id": 41,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 0
+    },
+    {
+      "id": 42,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 4
+    },
+    {
+      "id": 44,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 3
+    },
+    {
+      "id": 45,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 5
+    },
+    {
+      "id": 46,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 8
+    },
+    {
+      "id": 47,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 6
+    },
+    {
+      "id": 49,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 3
+    },
+    {
+      "id": 51,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 5
+    },
+    {
+      "id": 53,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 1
+    },
+    {
+      "id": 54,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 4
+    },
+    {
+      "id": 55,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 3
+    },
+    {
+      "id": 56,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 3
+    },
+    {
+      "id": 57,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 7
+    },
+    {
+      "id": 59,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 13
+    },
+    {
+      "id": 61,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 5
+    },
+    {
+      "id": 64,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 6
+    },
+    {
+      "id": 67,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 2
+    },
+    {
+      "id": 68,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 3
+    },
+    {
+      "id": 70,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 7
+    },
+    {
+      "id": 73,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 14
+    },
+    {
+      "id": 77,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 1
+    },
+    {
+      "id": 78,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 0
+    },
+    {
+      "id": 79,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 0
+    },
+    {
+      "id": 80,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 6
+    },
+    {
+      "id": 81,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 15
+    },
+    {
+      "id": 82,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 1
+    },
+    {
+      "id": 83,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 3
+    },
+    {
+      "id": 85,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 4
+    },
+    {
+      "id": 12345678908,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 17
+    },
+    {
+      "id": 87,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 4
+    },
+    {
+      "id": 89,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 14
+    },
+    {
+      "id": 92,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 0
+    },
+    {
+      "id": 11,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 9
+    },
+    {
+      "id": 93,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 10
+    },
+    {
+      "id": 94,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 7
+    },
+    {
+      "id": 96,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 1
+    },
+    {
+      "id": 97,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 10
+    },
+    {
+      "id": 56,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 22
+    },
+    {
+      "id": 99,
+      "real": "SEM dados",
+      "previsto": "SEM dados",
+      "status": "VN ✓",
+      "num_entidades": 8
+    }
+  ],
+  "criterios_desempate": {
+    "menor_fn": 2,
+    "menor_fp": 0,
+    "maior_p1": 0
+  }
+}

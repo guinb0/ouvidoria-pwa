@@ -80,12 +80,36 @@ class NameValidator:
             # Termos administrativos
             "processo", "protocolo", "documento", "artigo", "lei", "decreto", "portaria",
             "oficio", "memorando", "despacho", "parecer", "termo", "acordo", "contrato",
+            "convenio", "convencao", "cooperacao", "parceria",
             # Áreas/setores (detectados incorretamente como PERSON)
             "artificial", "digital", "demografico", "profissional", "publico",
             "generativa", "inteligencia", "letramento", "perfil", "setor",
             # Palavras compostas técnicas
             "governo", "distrito", "federal", "mestrado", "escola", "politicas",
             "instituto", "brasileiro", "ensino", "desenvolvimento", "pesquisa",
+            # Instituições compostas - ÓRGÃOS GOVERNAMENTAIS BRASILEIROS
+            "instituto brasileiro de ensino",
+            "escola de politicas publicas", "escola de politicas publicas e governo",
+            "escola nacional de administracao publica", "enap",
+            "governo do distrito federal", "gdf",
+            "ministerio", "secretaria de estado", "secretaria estadual", "secretaria municipal",
+            "prefeitura", "camara municipal", "assembleia legislativa",
+            "tribunal de justica", "tribunal regional", "defensoria publica",
+            "procuradoria geral", "controladoria geral",
+            "agencia nacional", "banco central", "caixa economica", "receita federal",
+            "policia federal", "policia militar", "corpo de bombeiros",
+            "inss", "sus", "datasus", "ibge", "ibama", "funai", "incra",
+            "anvisa", "anatel", "aneel", "ans", "anac", "anp",
+            "supremo tribunal federal", "superior tribunal",
+            "congresso nacional", "senado federal", "camara dos deputados",
+            "universidade federal", "instituto federal",
+            "petrobras", "eletrobras", "correios", "bndes",
+            # Instituições de ensino (NUNCA anonimizar)
+            "escola", "colegio", "faculdade", "universidade", "instituto",
+            "centro universitario", "centro de ensino", "academia",
+            "escola municipal", "escola estadual", "escola particular",
+            "escola publica", "ensino fundamental", "ensino medio",
+            "educacao", "curso", "graduacao", "pos-graduacao",
             # Status e qualificadores
             "aberto", "fechado", "pendente", "concluido", "ativo", "inativo",
             # Cargos/títulos genéricos
@@ -122,6 +146,7 @@ class NameValidator:
             "manuela", "marina", "melissa", "nicole", "olivia", "pietra", "rafaela",
             "raquel", "regina", "rosangela", "sandra", "sophia", "valentina", "yasmin",
             "conceicao", "aparecida", "socorro", "penha", "gloria", "graca", "lourdes",
+            "conceição",  # Versão com acento
             # Nomes compostos comuns (primeira parte)
             "joao", "jose", "maria", "ana", "paulo", "carlos", "pedro", "luiz",
             "marcos", "antonio", "francisco", "luiza", "clara", "eduarda", "gabriela",
@@ -132,13 +157,44 @@ class NameValidator:
             "aura", "ruth", "edson", "walter", "cassandra", "pablo", "lúcio", "lucio"
         }
         
-        # Sobrenomes brasileiros muito comuns (para ajudar na validação)
+        # Sobrenomes brasileiros muito comuns (Top 200+ segundo IBGE)
         self.common_brazilian_surnames = {
+            # Top 20 (> 1% da população)
             "silva", "santos", "oliveira", "souza", "sousa", "rodrigues", "ferreira", 
             "alves", "pereira", "lima", "gomes", "costa", "ribeiro", "martins",
-            "carvalho", "rocha", "almeida", "nascimento", "araujo", "melo", "barbosa",
-            "cardoso", "reis", "castro", "andrade", "pinto", "moreira", "freitas", 
-            "fernandes", "dias", "cavalcanti", "monteiro", "mendes", "barros", "batista",
+            "carvalho", "rocha", "almeida", "nascimento", "araujo", "araújo",
+            # Top 21-50
+            "melo", "barbosa", "cardoso", "reis", "castro", "andrade", "pinto", 
+            "moreira", "freitas", "fernandes", "dias", "cavalcanti", "monteiro", 
+            "mendes", "barros", "batista", "tavares", "sampaio", "braga", "cruz",
+            "simoes", "simões", "mota", "franco", "garcia", "moreira", "miranda",
+            "guimaraes", "guimarães", "neves",
+            # Top 51-100
+            "correa", "corrêa", "teixeira", "pires", "rosa", "nunes", "borges",
+            "camargo", "valle", "marques", "vasconcelos", "farias", "ramos", "bezerra",
+            "cunha", "santiago", "aguiar", "rezende", "moura", "nogueira", "machado",
+            "sales", "azevedo", "duarte", "macedo", "vargas", "jesus", "paiva",
+            "magalhaes", "magalhães", "medeiros", "coelho", "xavier", "lourenco",
+            "lourenço", "aragao", "aragão", "siqueira", "fonseca", "goncalves", "gonçalves",
+            # Top 101-150
+            "leite", "brito", "amaral", "bueno", "dantas", "godoy", "barreto",
+            "pessoa", "matos", "fogaca", "fogaça", "ramalho", "delgado", "santana",
+            "bastos", "viana", "toledo", "avila", "ávila", "porto", "lacerda",
+            "salgado", "leal", "menezes", "moraes", "morais", "figueiredo",
+            "mesquita", "rangel", "queiroz", "novais", "vaz", "pacheco",
+            "furtado", "cardozo", "muniz", "fontes", "rossi", "goulart", "ventura",
+            # Top 151-200 e outros muito comuns
+            "brandao", "brandão", "medina", "vidal", "nery", "coutinho",
+            "domingues", "lemos", "esteves", "serra", "gonzaga", "assuncao",
+            "assunção", "silveira", "vilela", "fagundes", "guedes", "arruda",
+            "caetano", "carneiro", "bento", "amorim", "guerra", "escobar", "jardim",
+            "sequeira", "vale", "felix", "félix", "maia", "lara", "padilha", "torres",
+            "serrano", "neto", "filho", "junior", "sobrinho", "segundo", "terceiro",
+            "villar", "bispo", "goes", "peixoto", "cabral", "camara", "câmara",
+            "vasques", "varela", "espinosa", "horta", "crespo", "bessa",
+            "cortes", "cortês", "seabra", "lobato", "portela", "afonso", "saraiva",
+            "cordeiro", "barroso", "guerreiro", "nobre", "galvao", "galvão",
+            "prado", "pestana", "paredes", "trindade", "bernardes", "gama",
             "lopes", "marques", "borges", "pires", "moura", "cunha", "correa", "campos",
             "teixeira", "vieira", "azevedo", "sales", "xavier", "macedo", "farias", "nunes",
             "ramos", "miranda", "nogueira", "duarte", "pacheco", "medeiros", "amaral", 
@@ -167,6 +223,16 @@ class NameValidator:
         
         # 1. Blacklist definitiva - NUNCA são nomes
         if text_lower in self.never_names:
+            return False
+        
+        # 1.1. Verificar frases completas de órgãos que podem estar fragmentadas
+        # Detectar padrões como "Escola de Políticas Públicas", "Mestrado da Escola"
+        if any(org in text_lower for org in [
+            "escola", "universidade", "faculdade", "colegio", "instituto",
+            "centro universitario", "centro de ensino",
+            "politicas publicas", "ministerio", "secretaria de",
+            "prefeitura", "governo do", "tribunal de"
+        ]):
             return False
         
         # Verificar cada palavra
@@ -242,19 +308,15 @@ class NameValidator:
             if search_result and (search_result.get('first_name') or search_result.get('last_name')):
                 # Encontrado no dataset
                 # Mas verificar se também é sobrenome comum (evitar "Santos" sozinho)
-                if palavra_lower in self.common_brazilian_surnames:
-                    # É sobrenome comum, exigir contexto ou score alto
-                    return False  # Rejeitar palavra solta como "Santos", "Silva"
+                if palavra_lower in self.common_brazilian_surnames and palavra_lower not in self.common_brazilian_first_names:
+                    # É APENAS sobrenome comum (não é nome), exigir contexto ou score alto
+                    return False  # Rejeitar palavra solta como "Santos", "Silva" sem contexto
                 return True
             return False
         
         elif len(palavras) == 2:
             # Nome simples de 2 palavras - "Antonio Costa", "Fátima Lima", "Júlio Cesar"
-            # Aceitar se:
-            # 1. Primeira palavra é nome brasileiro comum + segunda é sobrenome OU
-            # 2. Primeira palavra é nome + segunda é sobrenome OU
-            # 3. Ambas estão no NameDataset OU
-            # 4. Segunda palavra é sobrenome brasileiro comum
+            # AJUSTADO: Ser mais permissivo - aceitar se qualquer componente é válido
             palavra1_lower = palavras[0].lower()
             palavra2_lower = palavras[1].lower()
             palavra1_cap = palavras[0].capitalize()
@@ -262,9 +324,13 @@ class NameValidator:
             
             # Verificar lista de nomes comuns primeiro (mais rápido)
             if palavra1_lower in self.common_brazilian_first_names:
-                # Primeira é nome brasileiro comum
-                if palavra2_lower in self.common_brazilian_surnames or palavra2_lower in self.common_brazilian_first_names:
+                # Primeira é nome brasileiro comum - aceitar se segunda tem 3+ chars
+                if palavra2_lower in self.common_brazilian_surnames or palavra2_lower in self.common_brazilian_first_names or len(palavra2_lower) >= 3:
                     return True
+            
+            # Se segunda palavra é sobrenome comum E primeira tem 3+ caracteres (não é sigla)
+            if palavra2_lower in self.common_brazilian_surnames and len(palavra1_lower) >= 3:
+                return True
             
             search1 = self.dataset.search(palavra1_cap)
             search2 = self.dataset.search(palavra2_cap)
@@ -277,17 +343,22 @@ class NameValidator:
             if search1 and search2:
                 return True
             
-            # Cenário 3: Segunda palavra é sobrenome brasileiro comum
+            # Cenário 3: Segunda palavra é sobrenome brasileiro comum E primeira é válida
             if palavra2_lower in self.common_brazilian_surnames and search1:
+                return True
+            
+            # NOVO: Aceitar se primeira é nome comum no dataset E segunda tem 3+ chars
+            if search1 and search1.get('first_name') and len(palavra2_lower) >= 3:
                 return True
             
             return False
         
         else:
             # Nome composto (3+ palavras) - "Carolina Guimarães Neves", "Júlio Cesar Alves da Rosa"
-            # Pelo menos uma palavra deve ser primeiro nome E pelo menos uma deve ser sobrenome
+            # AJUSTADO: Ser mais permissivo - aceitar se tem pelo menos um nome OU sobrenome válido
             has_first_name = False
             has_last_name = False
+            valid_components = 0
             
             for i, palavra in enumerate(palavras):
                 palavra_lower = palavra.lower()
@@ -300,9 +371,11 @@ class NameValidator:
                 # Verificar lista de nomes comuns brasileiros primeiro
                 if palavra_lower in self.common_brazilian_first_names:
                     has_first_name = True
+                    valid_components += 1
                 
                 if palavra_lower in self.common_brazilian_surnames:
                     has_last_name = True
+                    valid_components += 1
                 
                 # Se ainda não encontrou, buscar no NameDataset
                 if not (has_first_name and has_last_name):
@@ -311,11 +384,13 @@ class NameValidator:
                     if search_result:
                         if search_result.get('first_name'):
                             has_first_name = True
+                            valid_components += 1
                         if search_result.get('last_name'):
                             has_last_name = True
+                            valid_components += 1
             
-            # Nome válido: tem primeiro nome E sobrenome
-            return has_first_name and has_last_name
+            # Nome válido: tem primeiro nome E sobrenome OU tem 2+ componentes válidos
+            return (has_first_name and has_last_name) or valid_components >= 2
 
 
 class LocationValidator:
@@ -333,6 +408,8 @@ class LocationValidator:
         
         # Blacklist definitiva de palavras que NUNCA são localizações
         self.never_locations = {
+            # Saudações/fechamentos
+            "at.te", "atenciosamente", "cordialmente", "respeitosamente", "grata", "grato",
             # Verbos
             "venho", "solicito", "requeiro", "peço", "peco", "encaminho", "apresento",
             "informo", "comunico", "manifesto", "declaro", "afirmo", "ratifico",
