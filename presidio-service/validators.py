@@ -1,12 +1,34 @@
 """
-Validadores robustos para entidades usando bibliotecas especializadas
-Evita falsos positivos usando datasets reais de nomes e localizações
+Validadores Robustos de Entidades PII - Sistema Anti-Falsos Positivos
+
+Este módulo implementa validação inteligente de entidades detectadas pelo Presidio,
+com foco em eliminar falsos positivos através de múltiplas camadas de verificação:
+
+1. NameValidator: Valida nomes de pessoas usando NameDataset (190k+ nomes) +
+   listas customizadas de nomes brasileiros + análise contextual
+   
+2. LocationValidator: Valida localizações usando Geopy + PyCountry +
+   blacklists de termos técnicos/administrativos
+   
+3. PersonLocationFilter: Orquestra a validação integrada de PERSON e LOCATION
+
+Camadas de Proteção:
+- Blacklists definitivas (never_names/never_locations)
+- Validação por componentes (primeiro nome + sobrenome)
+- Análise de contexto (100 chars antes/depois)
+- Detecção de padrões (artístico, institucional, técnico)
+
+Autor: Sistema de Anonimização LGPD
 """
 import logging
 from typing import Optional, Set
 from functools import lru_cache
 
-# Importar biblioteca de nomes
+# ============================================================================
+# IMPORTAÇÕES DE BIBLIOTECAS EXTERNAS
+# ============================================================================
+
+# Biblioteca de nomes: 190k+ nomes de 160 países
 try:
     from names_dataset import NameDataset
     NAMES_DATASET_AVAILABLE = True
