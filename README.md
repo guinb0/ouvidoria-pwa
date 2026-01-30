@@ -1,6 +1,6 @@
 # Ouvidoria PWA - Sistema de Anonimização com Microsoft Presidio
 
-Sistema de ouvidoria com proteção automática de dados pessoais (PII) usando .NET 9 Web API, TypeScript/Vite e **Microsoft Presidio** para detecção inteligente de informações sensíveis.
+Este projeto apresenta o desenvolvimento de um Sistema de Ouvidoria com Proteção Automática de Dados Pessoais (PII), utilizando .NET 9 Web API no backend, TypeScript com Vite no frontend e Microsoft Presidio para detecção inteligente de informações sensíveis. A solução tem como objetivo identificar e tratar automaticamente dados pessoais — como CPF, e-mail, telefone e outros identificadores — em relatos enviados pelos usuários, aplicando técnicas de processamento de linguagem natural (NLP) para garantir maior precisão na proteção de dados. O sistema busca reforçar a conformidade com a LGPD, reduzir riscos de exposição indevida de informações e promover uma abordagem de privacy by design, aumentando a segurança, a confiabilidade e a transparência no tratamento de manifestações em ouvidorias.
 
 ## ⚡ Quick Start - Comandos para Executar
 
@@ -21,7 +21,9 @@ cd ouvidoria-pwa
 
 ```powershell
 cd presidio-service
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
+python -m pip install fastapi
+python -m pip install presidio-analyzer
 python main.py
 ```
 
