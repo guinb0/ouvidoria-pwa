@@ -311,10 +311,33 @@ async def processar_texto(request: ProcessamentoRequest):
         
         # Lista de palavras que NUNCA devem ser anonimizadas (filtro global)
         never_anonymize_terms = [
+            # Instituições
             "escola", "universidade", "faculdade", "instituto", "colegio",
-            "contrato", "convenio", "acordo", "termo", "aditivo",
             "ministerio", "secretaria", "prefeitura", "tribunal", "governo",
-            "politicas publicas", "mestrado", "doutorado", "graduacao"
+            "politicas publicas", "mestrado", "doutorado", "graduacao",
+            # Termos administrativos
+            "contrato", "convenio", "acordo", "termo", "aditivo",
+            "emenda", "empenho", "inciso", "validador", "edital", "concurso",
+            "protocolo", "processo", "anexo", "ref", "disposto",
+            # Termos técnicos que são mal interpretados
+            "gestao", "governanca", "administracao", "infraestrutura",
+            "banco de dados", "tic", "aplicativo", "mensagem", "whatsapp",
+            "programa", "integridade", "monitoramento", "interesse",
+            "carteira de trabalho", "ouvidoria", "canal", "contoladoria",
+            "assunto", "esbulho", "registrado", "delegacias", "registros",
+            "vida empreendimentos", "cooperativas financeiras",
+            # Saudações e palavras soltas que não são nomes
+            "ola", "oi", "prezados", "prezadas", "tarde", "bom", "boa",
+            # Palavras soltas mal interpretadas
+            "id", "texto", "superior", "juvenil", "civil", "box", "advogados",
+            "sou", "inquilina", "sic", "referente", "administrativa",
+            "gama", "oab", "icms", "st", "legal", "orientado", "fui",
+            "novo", "pedido", "ajuda", "geral", "exista", "ou", "nude",
+            "fato", "da", "do", "de", "em", "no", "na", "dos", "das",
+            "serra", "sp", "cep", "ltda", "s/a", "sa", "an",
+            # Químicos/técnicos ambientais
+            "coliformes", "termotolerantes", "fosforo", "nitrogenio",
+            "amoniacal", "oxigenio", "dissolvido", "solidos", "totais"
         ]
         
         # Criar índice de spans para detectar sobreposições

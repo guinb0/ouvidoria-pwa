@@ -80,10 +80,16 @@ class NameValidator:
             # Termos administrativos
             "processo", "protocolo", "documento", "artigo", "lei", "decreto", "portaria",
             "oficio", "memorando", "despacho", "parecer", "termo", "acordo", "contrato",
-            "convenio", "convencao", "cooperacao", "parceria",
+            "convenio", "convencao", "cooperacao", "parceria", "emenda", "empenho",
+            "inciso", "validador", "gerador", "disposto", "edital", "concurso",
+            "registrado", "registros", "anexo", "ref", "fato", "destaque",
             # Áreas/setores (detectados incorretamente como PERSON)
             "artificial", "digital", "demografico", "profissional", "publico",
             "generativa", "inteligencia", "letramento", "perfil", "setor",
+            "gestao", "governanca", "administracao", "infraestrutura", "tic",
+            "banco de dados", "aplicativo", "programa", "integridade", "monitoramento",
+            "carteira de trabalho", "interesse", "ajuda", "ouvidoria", "canal",
+            "contoladoria", "assunto", "esbulho", "texto", "superior", "juvenil",
             # Palavras compostas técnicas
             "governo", "distrito", "federal", "mestrado", "escola", "politicas",
             "instituto", "brasileiro", "ensino", "desenvolvimento", "pesquisa",
@@ -154,7 +160,8 @@ class NameValidator:
             "beto", "betina", "carlinhos", "duda", "juju", "lulu", "nando", "rafa",
             "tati", "vivi", "gabi", "fabi", "dani", "cris", "mari", "leti", "nath",
             "bia", "carol", "cacá", "zeca", "chico", "binho", "nino", "tito",
-            "aura", "ruth", "edson", "walter", "cassandra", "pablo", "lúcio", "lucio"
+            "aura", "ruth", "edson", "walter", "cassandra", "pablo", "lúcio", "lucio",
+            "thiago", "conceicao"
         }
         
         # Sobrenomes brasileiros muito comuns (Top 200+ segundo IBGE)
@@ -227,12 +234,26 @@ class NameValidator:
         
         # 1.1. Verificar frases completas de órgãos que podem estar fragmentadas
         # Detectar padrões como "Escola de Políticas Públicas", "Mestrado da Escola"
-        if any(org in text_lower for org in [
+        institutional_keywords = [
             "escola", "universidade", "faculdade", "colegio", "instituto",
             "centro universitario", "centro de ensino",
             "politicas publicas", "ministerio", "secretaria de",
-            "prefeitura", "governo do", "tribunal de"
-        ]):
+            "prefeitura", "governo do", "tribunal de",
+            "banco de dados", "gestao", "governanca", "administracao",
+            "ouvidoria", "contoladoria", "infraestrutura"
+        ]
+        if any(org in text_lower for org in institutional_keywords):
+            return False
+        
+        # 1.2. Rejeitar palavras únicas que são claramente não-nomes
+        single_word_blacklist = {
+            "ola", "oi", "id", "texto", "superior", "juvenil", "civil",
+            "tarde", "box", "advogados", "sou", "inquilina", "sic",
+            "referente", "administrativa", "gama", "oab", "ltda",
+            "coliformes", "fosforo", "nitrogenio", "oxigenio", "solidos",
+            "empenho", "emenda", "inciso", "validador", "canal", "geral"
+        }
+        if len(palavras) == 1 and palavras[0] in single_word_blacklist:
             return False
         
         # Verificar cada palavra
