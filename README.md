@@ -24,6 +24,7 @@ cd presidio-service
 python -m pip install -r requirements.txt
 python -m pip install fastapi
 python -m pip install presidio-analyzer
+python -m pip install presidio-anonymizer
 python main.py
 ```
 
