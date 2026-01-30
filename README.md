@@ -1,101 +1,415 @@
-Ouvidoria PWA — Sistema de Anonimização com Microsoft Presidio
-⚡ Como Executar (Passo a Passo)
-Pré-requisitos
+# 🛡️ Ouvidoria PWA — Sistema de Anonimização com Microsoft Presidio
 
-.NET 9
+Sistema de **Ouvidoria com Proteção Automática de Dados Pessoais (PII)** utilizando **.NET 9 Web API**, **Microsoft Presidio (Python)** e **TypeScript + Vite**, com foco em **LGPD**, **Privacy by Design** e **anonimização inteligente de dados sensíveis**.
 
-Python 3.8–3.12
+---
 
-Node.js 18+
+## ⚡ Como Executar (Passo a Passo)
 
-Clone o projeto:
+### 📋 Pré-requisitos
 
+Instale antes de começar:
+
+* **.NET 9 SDK**
+  👉 [https://dotnet.microsoft.com/download/dotnet/9.0](https://dotnet.microsoft.com/download/dotnet/9.0)
+
+* **Python 3.8 – 3.12**
+  👉 [https://www.python.org/downloads/](https://www.python.org/downloads/)
+
+* **Node.js 18+**
+  👉 [https://nodejs.org/](https://nodejs.org/)
+
+* **Git**
+  👉 [https://git-scm.com/downloads](https://git-scm.com/downloads)
+
+---
+
+## 📥 Clone o Projeto
+
+```bash
 git clone https://github.com/guinb0/ouvidoria-pwa.git
 cd ouvidoria-pwa
+```
 
-📂 Estrutura do Projeto
+---
+
+## 📂 Estrutura do Projeto
+
+```text
 ouvidoria-pwa/
-├── backend/           # API .NET
-├── presidio-service/  # Serviço Presidio
-└── frontend/          # Interface Web
+├── backend/           # API .NET 9
+├── presidio-service/  # Serviço Python com Microsoft Presidio
+└── frontend/          # Interface Web (TypeScript + Vite)
+```
 
-1️⃣ Presidio Service (EXECUTAR PRIMEIRO)
+---
+
+## 1️⃣ Presidio Service (EXECUTAR PRIMEIRO)
+
+```bash
 cd presidio-service
+
 python -m venv venv
 python -m pip install -r requirements.txt
+
 python -m spacy download pt_core_news_sm
+
 python main.py
+```
 
+➡ Serviço rodando em:
 
-➡ Serviço rodando em: http://localhost:8000
+```
+http://localhost:8000
+```
 
-2️⃣ Backend .NET (EXECUTAR SEGUNDO)
+---
+
+## 2️⃣ Backend .NET (EXECUTAR SEGUNDO)
+
+```bash
 cd backend/OuvidoriaApi
+
 dotnet restore
 dotnet run
+```
 
+➡ API rodando em:
 
-➡ API rodando em: http://localhost:5080
+```
+http://localhost:5080
+```
 
-3️⃣ Frontend (EXECUTAR POR ÚLTIMO)
+---
+
+## 3️⃣ Frontend (EXECUTAR POR ÚLTIMO)
+
+```bash
 cd frontend
+
 npm install
 npm run dev
+```
 
+➡ Acesse no navegador:
 
-➡ Acesse: http://localhost:5173
+```
+http://localhost:5173
+```
 
-🧪 Teste Rápido
+---
 
-Texto de entrada:
+## 🧪 Teste Rápido
 
-Meu nome é João Silva. CPF: 123.456.789-00
+### Texto de entrada
+
+```text
+Meu nome é João Silva.
+CPF: 123.456.789-00
 Email: joao@email.com
 Telefone: (11) 98765-4321
+```
 
+### Resultado esperado
 
-Resultado esperado:
-
-Meu nome é [NOME]. CPF: [CPF]
+```text
+Meu nome é [NOME].
+CPF: [CPF]
 Email: [EMAIL]
 Telefone: [TELEFONE]
+```
 
-📌 Sobre o Projeto
+---
 
-Sistema de Ouvidoria com Proteção Automática de Dados Pessoais (PII) usando:
+## 📌 Sobre o Projeto
 
-.NET 9 Web API (backend)
+Sistema de **Ouvidoria com Anonimização Automática de Dados Sensíveis**, capaz de detectar e mascarar:
 
-Microsoft Presidio (Python) para detecção inteligente de dados sensíveis
+* CPF
+* E-mails
+* Telefones
+* Nomes de pessoas
+* Localizações
+* Outros identificadores pessoais
 
-TypeScript + Vite (frontend)
+---
 
-O sistema identifica e anonimiza automaticamente CPF, e-mail, telefone, nomes e localizações, aplicando NLP e boas práticas de LGPD e privacy by design.
+## 🛠 Tecnologias Utilizadas
 
-🏗 Arquitetura
-Frontend → .NET API → Presidio Service (Python)
-                    ↓
-             Fallback Regex (se indisponível)
+* **.NET 9 Web API** — backend
+* **Microsoft Presidio (Python)** — detecção inteligente de PII
+* **spaCy (Português)** — NLP
+* **TypeScript + Vite** — frontend moderno
 
-🔍 Funcionalidades
+---
 
--  Detecção automática de dados pessoais
--  Anonimização em tempo real
--  Suporte a português (spaCy)
--  Fallback caso Presidio falhe
--  Interface web simples e responsiva
+## 🔐 Princípios Aplicados
 
-📡 Endpoints Principais
-Backend (.NET)
+* LGPD
+* Privacy by Design
+* Segurança de dados
+* Automação de anonimização
 
-POST /api/ouvidoria/processar
+---
 
-GET /api/ouvidoria/health
+## 🏗 Arquitetura do Sistema
 
-Presidio (Python)
+```text
+Frontend (TypeScript)
+        ↓
+.NET 9 API
+        ↓
+Microsoft Presidio (Python)
+        ↓
+Fallback Regex (caso indisponível)
+```
 
-POST /api/processar
+---
 
-GET /api/health
+## 🔍 Funcionalidades
 
-GET /docs
+* ✅ Detecção automática de dados pessoais
+* ✅ Anonimização em tempo real
+* ✅ Processamento em português (spaCy)
+* ✅ Fallback com Regex caso IA falhe
+* ✅ Interface web simples e responsiva
+* ✅ API REST pronta para integração
+
+---
+
+## 📡 Endpoints Principais
+
+### Backend (.NET)
+
+| Método | Endpoint                   | Descrição                    |
+| ------ | -------------------------- | ---------------------------- |
+| POST   | `/api/ouvidoria/processar` | Processa e anonimiza o texto |
+| GET    | `/api/ouvidoria/health`    | Status da API                |
+
+---
+
+### Presidio Service (Python)
+
+| Método | Endpoint         | Descrição                 |
+| ------ | ---------------- | ------------------------- |
+| POST   | `/api/processar` | Analisa e anonimiza texto |
+| GET    | `/api/health`    | Status do serviço         |
+| GET    | `/docs`          | Documentação Swagger      |
+
+---
+
+## 📄 Licença
+
+Defina a licença conforme necessidade (MIT, Apache 2.0, GPL, etc.).
+
+---
+
+Se quiser, posso deixar esse README em **padrão corporativo premium**, adicionar **badges**, **prints**, **Docker**, **CI/CD**, e **diagramas visuais**.
+
+# 🛡️ Ouvidoria PWA — Sistema de Anonimização com Microsoft Presidio
+
+Sistema de **Ouvidoria com Proteção Automática de Dados Pessoais (PII)** utilizando **.NET 9 Web API**, **Microsoft Presidio (Python)** e **TypeScript + Vite**, com foco em **LGPD**, **Privacy by Design** e **anonimização inteligente de dados sensíveis**.
+
+---
+
+## ⚡ Como Executar (Passo a Passo)
+
+### 📋 Pré-requisitos
+
+Instale antes de começar:
+
+* **.NET 9 SDK**
+  👉 [https://dotnet.microsoft.com/download/dotnet/9.0](https://dotnet.microsoft.com/download/dotnet/9.0)
+
+* **Python 3.8 – 3.12**
+  👉 [https://www.python.org/downloads/](https://www.python.org/downloads/)
+
+* **Node.js 18+**
+  👉 [https://nodejs.org/](https://nodejs.org/)
+
+* **Git**
+  👉 [https://git-scm.com/downloads](https://git-scm.com/downloads)
+
+---
+
+## 📥 Clone o Projeto
+
+```bash
+git clone https://github.com/guinb0/ouvidoria-pwa.git
+cd ouvidoria-pwa
+```
+
+---
+
+## 📂 Estrutura do Projeto
+
+```text
+ouvidoria-pwa/
+├── backend/           # API .NET 9
+├── presidio-service/  # Serviço Python com Microsoft Presidio
+└── frontend/          # Interface Web (TypeScript + Vite)
+```
+
+---
+
+## 1️⃣ Presidio Service (EXECUTAR PRIMEIRO)
+
+```bash
+cd presidio-service
+
+python -m venv venv
+python -m pip install -r requirements.txt
+
+python -m spacy download pt_core_news_sm
+
+python main.py
+```
+
+➡ Serviço rodando em:
+
+```
+http://localhost:8000
+```
+
+---
+
+## 2️⃣ Backend .NET (EXECUTAR SEGUNDO)
+
+```bash
+cd backend/OuvidoriaApi
+
+dotnet restore
+dotnet run
+```
+
+➡ API rodando em:
+
+```
+http://localhost:5080
+```
+
+---
+
+## 3️⃣ Frontend (EXECUTAR POR ÚLTIMO)
+
+```bash
+cd frontend
+
+npm install
+npm run dev
+```
+
+➡ Acesse no navegador:
+
+```
+http://localhost:5173
+```
+
+---
+
+## 🧪 Teste Rápido
+
+### Texto de entrada
+
+```text
+Meu nome é João Silva.
+CPF: 123.456.789-00
+Email: joao@email.com
+Telefone: (11) 98765-4321
+```
+
+### Resultado esperado
+
+```text
+Meu nome é [NOME].
+CPF: [CPF]
+Email: [EMAIL]
+Telefone: [TELEFONE]
+```
+
+---
+
+## 📌 Sobre o Projeto
+
+Sistema de **Ouvidoria com Anonimização Automática de Dados Sensíveis**, capaz de detectar e mascarar:
+
+* CPF
+* E-mails
+* Telefones
+* Nomes de pessoas
+* Localizações
+* Outros identificadores pessoais
+
+---
+
+## 🛠 Tecnologias Utilizadas
+
+* **.NET 9 Web API** — backend
+* **Microsoft Presidio (Python)** — detecção inteligente de PII
+* **spaCy (Português)** — NLP
+* **TypeScript + Vite** — frontend moderno
+
+---
+
+## 🔐 Princípios Aplicados
+
+* LGPD
+* Privacy by Design
+* Segurança de dados
+* Automação de anonimização
+
+---
+
+## 🏗 Arquitetura do Sistema
+
+```text
+Frontend (TypeScript)
+        ↓
+.NET 9 API
+        ↓
+Microsoft Presidio (Python)
+        ↓
+Fallback Regex (caso indisponível)
+```
+
+---
+
+## 🔍 Funcionalidades
+
+* ✅ Detecção automática de dados pessoais
+* ✅ Anonimização em tempo real
+* ✅ Processamento em português (spaCy)
+* ✅ Fallback com Regex caso IA falhe
+* ✅ Interface web simples e responsiva
+* ✅ API REST pronta para integração
+
+---
+
+## 📡 Endpoints Principais
+
+### Backend (.NET)
+
+| Método | Endpoint                   | Descrição                    |
+| ------ | -------------------------- | ---------------------------- |
+| POST   | `/api/ouvidoria/processar` | Processa e anonimiza o texto |
+| GET    | `/api/ouvidoria/health`    | Status da API                |
+
+---
+
+### Presidio Service (Python)
+
+| Método | Endpoint         | Descrição                 |
+| ------ | ---------------- | ------------------------- |
+| POST   | `/api/processar` | Analisa e anonimiza texto |
+| GET    | `/api/health`    | Status do serviço         |
+| GET    | `/docs`          | Documentação Swagger      |
+
+---
+
+## 📄 Licença
+
+Defina a licença conforme necessidade (MIT, Apache 2.0, GPL, etc.).
+
+---
+
+Se quiser, posso deixar esse README em **padrão corporativo premium**, adicionar **badges**, **prints**, **Docker**, **CI/CD**, e **diagramas visuais**.
